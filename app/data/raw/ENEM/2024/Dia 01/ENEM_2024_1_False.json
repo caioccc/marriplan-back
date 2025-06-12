@@ -1,0 +1,555 @@
+{
+  "metadata": {
+    "exam": "ENEM",
+    "year": 2024,
+    "day": 1,
+    "retake": false,
+    "instructions": "**ATENÇÃO:** transcreva no espaço apropriado do seu CARTÃO-RESPOSTA,\ncom sua caligrafia usual, considerando as letras maiúsculas e minúsculas, a seguinte frase:\n\n<div align='center'>\nO arco-íris foge de mim\n</div>\n\n**LEIA ATENTAMENTE AS INSTRUÇÕES SEGUINTES:**\n\n1. Este CADERNO DE QUESTÕES contém 90 questões numeradas de 01 a 90 e a Proposta de Redação,\ndispostas da seguinte maneira:\n   a) questões de número 01 a 45, relativas à área de Linguagens, Códigos e suas Tecnologias;\n   b) Proposta de Redação;\n   c) questões de número 46 a 90, relativas à área de Ciências Humanas e suas Tecnologias.\n   **ATENÇÃO:** as questões de 01 a 05 são relativas à língua estrangeira. Você deverá responder apenas\n   às questões relativas à língua estrangeira (inglês ou espanhol) escolhida no ato de sua inscrição.\n2. Confira se a quantidade e a ordem das questões do seu CADERNO DE QUESTÕES estão de acordo\ncom as instruções anteriores. Caso o caderno esteja incompleto, tenha defeito ou apresente qualquer\ndivergência, comunique ao aplicador da sala para que ele tome as providências cabíveis.\n3. Para cada uma das questões objetivas, são apresentadas 5 opções. Apenas uma responde\ncorretamente à questão.\n4. O tempo disponível para estas provas é de **cinco horas e trinta minutos**.\n5. Reserve tempo suficiente para preencher o CARTÃO-RESPOSTA e a FOLHA DE REDAÇÃO.\n6. Os rascunhos e as marcações assinaladas no CADERNO DE QUESTÕES não serão considerados na\navaliação.\n7. Somente serão corrigidas as redações transcritas na FOLHA DE REDAÇÃO.\n8. Quando terminar as provas, acene para chamar o aplicador e entregue este CADERNO DE QUESTÕES\ne o CARTÃO-RESPOSTA/FOLHA DE REDAÇÃO.\n9. Você poderá deixar o local de prova somente após decorridas duas horas do início da aplicação e\npoderá levar seu CADERNO DE QUESTÕES ao deixar em definitivo a sala de prova nos **30 minutos**\nque antecedem o término das provas."
+  },
+  "questions": [
+    {
+      "question_id": "Q1",
+      "statement": "A relação entre as citações atribuídas ao físico Albert Einstein\ne ao cantor e compositor Bob Marley reside na crença de que\né necessário",
+      "statement_html": "<h1 data-align=\"center\"><strong>QUOTES</strong></h1><img src=\"\" alt=\"Citação de Albert Einstein\" data-image-id=\"image_1\"><br><img src=\"\" alt=\"Citação de Bob Marley\" data-image-id=\"image_2\"><p data-align=\"left\"><small>Disponível em: http://thumbpress.com. Acesso em: 28 out. 2013.</small></p><p>A relação entre as citações atribuídas ao físico Albert Einstein<br>e ao cantor e compositor Bob Marley reside na crença de que<br>é necessário</p>",
+      "choices": {
+        "A": "dar oportunidade a pessoas que parecem necessitadas.",
+        "B": "identificar contextos que podem representar perigo",
+        "C": "tirar proveito de situações que podem ser adversas.",
+        "D": "evitar dificuldades que parecem ser intransponíveis.",
+        "E": "contestar circunstâncias que parecem ser harmônicas."
+      },
+      "correct_choice": "C",
+      "explanation": {
+        "text": "**Explicação:**\\\\n\\\\n* **Citação de Albert Einstein:** \\\"Out of clutter, find simplicity. From discord, find harmony. In the middle of difficulty lies opportunity.\\\" (Do caos, encontre a simplicidade. Da discórdia, encontre a harmonia. No meio da dificuldade reside a oportunidade.)\\\\n    Esta citação sugere que, mesmo em contextos negativos como o caos (clutter), a discórdia e a dificuldade, é possível encontrar elementos positivos como a simplicidade, a harmonia e, crucialmente, a oportunidade. A ideia central é transformar uma situação adversa em algo benéfico.\\\\n\\\\n* **Citação de Bob Marley:** \\\"Some people feel the rain. Others just get wet.\\\" (Algumas pessoas sentem a chuva. Outras apenas se molham.)\\\\n    Esta citação diferencia duas formas de vivenciar a mesma experiência (a chuva), que pode ser vista como uma adversidade ou desconforto. \\\"Apenas se molhar\\\" é uma reação passiva e possivelmente negativa. \\\"Sentir a chuva\\\", por outro lado, implica uma percepção mais profunda, uma conexão ou até mesmo um aproveitamento da situação, encontrando beleza ou significado nela, apesar do potencial desconforto. É uma forma de tirar proveito de uma situação que, para muitos, seria apenas adversa.\\\\n\\\\n**Relação entre as citações e a alternativa C:**\\\\n\\\\nAmbas as citações compartilham a ideia de que é possível (e necessário) extrair algo positivo de circunstâncias que, à primeira vista, parecem desfavoráveis ou adversas. Einstein fala explicitamente em encontrar \\\"oportunidade\\\" na \\\"dificuldade\\\". Marley sugere uma experiência mais rica e positiva (\\\"sentir a chuva\\\") em vez de uma mera consequência passiva (\\\"se molhar\\\") de um evento que pode ser considerado adverso.\\\\n\\\\nPortanto, a crença comum é a de que se deve **tirar proveito de situações que podem ser adversas**, transformando-as ou encontrando nelas um valor oculto, seja uma oportunidade (Einstein) ou uma experiência mais profunda e significativa (Marley).",
+        "source": "ai_generated",
+        "verified": false,
+        "verified_at": null,
+        "verified_by": null
+      },
+      "images": [
+        {
+          "image_id": "image_1",
+          "origin_path": "./app/data/raw/ENEM/2024/Dia 01/Q1_image_1.png",
+          "url": null
+        },
+        {
+          "image_id": "image_2",
+          "origin_path": "./app/data/raw/ENEM/2024/Dia 01/Q1_image_2.png",
+          "url": null
+        }
+      ],
+      "subject_area": [
+        "LINGUAGENS, CÓDIGOS E SUAS TECNOLOGIAS",
+        "Inglês"
+      ],
+      "specific_topic": "Interpretação de texto",
+      "keywords": [
+        "Citações",
+        "Albert Einstein",
+        "Bob Marley",
+        "Relação",
+        "Situações adversas"
+      ],
+      "difficulty": "Médio",
+      "knowledge_refs": [
+        {
+          "mention": "Quote Investigator – “In the middle of difficulty lies opportunity” (atribuição a Einstein)",
+          "content": "Rastreia a origem da frase e explica como ela encoraja enxergar oportunidades em meio às dificuldades, no cerne da alternativa correta da questão.",
+          "href": "https://quoteinvestigator.com/2021/10/07/difficulty/"
+        },
+        {
+          "mention": "Canadian Healthcare Network – Reflexão prática sobre a mesma citação de Einstein",
+          "content": "Mostra aplicações reais da ideia de transformar desafios em oportunidades, reforçando a leitura exigida pelo item C.",
+          "href": "https://canadianhealthcarenetwork.ca/middle-difficulty-lies-opportunity"
+        },
+        {
+          "mention": "Coach.me – Significado de “Some people feel the rain, others just get wet”",
+          "content": "Discussão sobre a interpretação da frase atribuída a Bob Marley, destacando a atitude positiva diante de situações adversas.",
+          "href": "https://www.coach.me/questions/10917-whats-the-context-or-meaning-behind-some-people-feel-the-rain-others-just-get-wet"
+        }
+      ],
+      "indexable": true,
+      "active": true,
+      "embedding_status": "pending",
+      "source_type": "official_questions"
+    },
+    {
+      "question_id": "Q2",
+      "statement": "Holy War\nOh, so we can hate each other and fear each other\nWe can build these walls between each other\nBaby, blow by blow and brick by brick\nKeep yourself locked in, yourself locked in\n[…]\nOh, maybe we should love somebody\nOh, maybe we could care a little more\nSo maybe we should love somebody\nInstead of polishing the bombs of holy war\nKEYS, A. Here. Estados Unidos: RCA Records, 2016.\nNessa letra de canção, que aborda um contexto de ódio\ne intolerância, o marcador “instead of ” introduz a ideia de",
+      "statement_html": "<h1 data-align=\"center\"><strong>Holy War</strong></h1><p>Oh, so we can hate each other and fear each other<br>We can build these walls between each other<br>Baby, blow by blow and brick by brick<br>Keep yourself locked in, yourself locked in<br>[...]<br>Oh, maybe we should love somebody<br>Oh, maybe we could care a little more<br>So maybe we should love somebody<br>Instead of polishing the bombs of holy war</p><p data-align=\"right\"><small>KEYS, A. Here. Estados Unidos: RCA Records, 2016.</small></p><p>Nessa letra de canção, que aborda um contexto de ódio e intolerância, o marcador 'instead of' introduz a ideia de</p>",
+      "choices": {
+        "A": "mudança de comportamento.",
+        "B": "panorama de conflitos.",
+        "C": "rotina de isolamento",
+        "D": "perspectiva bélica.",
+        "E": "cenário religioso."
+      },
+      "correct_choice": "A",
+      "explanation": {
+        "text": "A alternativa correta é a **A) mudança de comportamento**.\\n\\nA expressão *\"instead of\"* (em vez de, ao invés de) é um marcador discursivo que introduz uma **oposição** ou **alternativa** a uma ideia ou ação mencionada anteriormente. Na letra da canção \"Holy War\", o trecho relevante é: \"So maybe we should love somebody / Instead of polishing the bombs of holy war\" (Então talvez devêssemos amar alguém / Em vez de polir as bombas da guerra santa).\\n\\nAnalisando o contexto:\\n* A primeira parte da letra descreve um cenário de ódio, medo e isolamento (\"hate each other\", \"fear each other\", \"build these walls\", \"locked in\").\\n* A segunda parte, introduzida por \"Oh, maybe...\", sugere uma nova possibilidade: amar e cuidar (\"love somebody\", \"care a little more\").\\n* A frase com \"instead of\" contrapõe diretamente a ação de \"amar alguém\" (love somebody) com a ação de \"polir as bombas da guerra santa\" (polishing the bombs of holy war).\\n\\n\"Polir as bombas da guerra santa\" simboliza a preparação para o conflito, a perpetuação do ciclo de violência e ódio. Ao sugerir \"amar alguém\" *em vez de* essa preparação bélica, a letra propõe uma **substituição de uma ação por outra**, ou seja, uma **mudança de comportamento**: abandonar o caminho da guerra e do conflito (ódio, intolerância) e adotar o caminho do amor e do cuidado.\\n\\nAs outras alternativas não se encaixam tão bem:\\n* B) Panorama de conflitos: \"Instead of\" não descreve um panorama, mas propõe uma saída dele.\\n* C) Rotina de isolamento: Embora o isolamento seja mencionado antes, \"instead of\" aqui foca na ação que quebra essa perspectiva, não na rotina em si.\\n* D) Perspectiva bélica: \"Instead of\" se opõe à perspectiva bélica, não a introduz como a ideia principal do marcador.\\n* E) Cenário religioso: Embora \"holy war\" (guerra santa) tenha conotação religiosa, o marcador \"instead of\" em si não introduz a ideia de cenário religioso, mas sim a alternativa a uma ação dentro desse possível contexto.\\n\\nPortanto, \"instead of\" claramente introduz uma **mudança de comportamento** como a alternativa desejável ao contexto de ódio e preparação para a guerra.",
+        "source": "ai_generated",
+        "verified": false,
+        "verified_at": null,
+        "verified_by": null
+      },
+      "images": null,
+      "subject_area": [
+        "LINGUAGENS, CÓDIGOS E SUAS TECNOLOGIAS",
+        "Inglês"
+      ],
+      "specific_topic": "Função semântica de um marcador discursivo (conector)",
+      "keywords": [
+        "instead of",
+        "Marcador discursivo",
+        "conector"
+      ],
+      "difficulty": "Fácil",
+      "knowledge_refs": [
+        {
+          "mention": "Artigo Alura Língua – “INSTEAD e INSTEAD OF: como usar”",
+          "content": "Explicação em português sobre significados, posição na frase e estrutura “instead of + -ing/noun”, com exemplos contrastivos.",
+          "href": "https://www.aluralingua.com.br/artigos/instead-e-instead-of-como-usar-em-ingles"
+        },
+        {
+          "mention": "Blog Fisk – diferença entre “rather than” e “instead of”",
+          "content": "Mostra que rather than indica preferência e instead of substituição, exatamente o contraste explorado na questão.",
+          "href": "https://fisk.com.br/blog/qual-e-a-diferenca-entre-rather-than-e-instead-of"
+        },
+        {
+          "mention": "Blog Fisk – diferença entre “rather than” e “instead of”",
+          "content": "Mostra que rather than indica preferência e instead of substituição, exatamente o contraste explorado na questão.",
+          "href": "https://www.cambridge.org/gb/cambridgeenglish/catalog/grammar-vocabulary-and-pronunciation/english-grammar-use-5th-edition"
+        }
+      ],
+      "indexable": true,
+      "active": true,
+      "embedding_status": "pending",
+      "source_type": "official_questions"
+    },
+    {
+      "question_id": "Q1_esp",
+      "statement": "El vírus de la cancelación\n¿De qué se trata este fenómeno? Se entiende por\ncultura de la cancelación a una práctica popular que consiste\nen “quitarle apoyo” especialmente a figuras públicas y\ncompañías multinacionales después de que hayan hecho\no dicho algo considerado objetable u ofensivo. Cuando\nalguien o algo está cancelado se descarta, se deja de ver,\nse deja de escuchar, se desclasifica, se aísla, se abandona,\nse niega, se deja de consumir hasta que eventualmente\npuede o no desaparecer. Es una estrategia muy extendida\nen la historia de las luchas anticoloniales, antiespecistas,\nsexodisidentes, feministas y, especialmente en nuestro\npaís, también llevadas adelante por el movimiento de\nderechos humanos. Entonces, ¿dónde radica el problema?\nSe puede observar positivamente que hay un proceso cada\nvez más agudo de socialización de herramientas críticas\npara desmantelar formas de desigualdad incrustadas en\nlos lazos sociales. Pero la popularización irrestricta y el uso\namplificado de esta herramienta por fuera de sus contextos\ncolectivos de emergencia han despertado efectos adversos\nen una sociedad atravesada por las pantallas como formas\nde encierro-consumo, la representación online como única\nesfera pública y un imperativo felicista cuya moral nos obliga\na trabajar ansiosamente por una vida sin desacuerdos, sin\nerrores y sin dolor, a como dé lugar.\nNa argumentação apresentada sobre cultura do\ncancelamento, esse texto objetiva",
+      "statement_html": "<h1><strong>El vírus de la cancelación</strong></h1><p>¿De qué se trata este fenómeno? Se entiende por cultura de la cancelación a una práctica popular que consiste en “quitarle apoyo” especialmente a figuras públicas y compañías multinacionales después de que hayan hecho o dicho algo considerado objetable u ofensivo.Cuando alguien o algo está cancelado se descarta, se deja de ver, se deja de escuchar, se desclasifica, se aísla, se abandona, se niega, se deja de consumir hasta que eventualmente puede o no desaparecer.Es una estrategia muy extendida en la historia de las luchas anticoloniales, antiespecistas, sexodisidentes, feministas y, especialmente en nuestro país, también llevadas adelante por el movimiento de derechos humanos.Entonces, ¿dónde radica el problema?Se puede observar positivamente que hay un proceso cada vez más agudo de socialización de herramientas críticas para desmantelar formas de desigualdad incrustadas en los lazos sociales.Pero la popularización irrestricta y el uso amplificado de esta herramienta por fuera de sus contextos colectivos de emergencia han despertado efectos adversos en una sociedad atravesada por las pantallas como formas de encierro-consumo, la representación online como única esfera pública y un imperativo felicista cuya moral nos obliga a trabajar ansiosamente por una vida sin desacuerdos, sin errores y sin dolor, a como dé lugar.</p><p data-align=\"right\"><small>Disponível em: www.revistaanfibia.com.<br>Acesso em: 7 out. 2021 (adaptado).</small></p><p>Na argumentação apresentada sobre cultura do cancelamento, esse texto objetiva</p>",
+      "choices": {
+        "A": "apresentar o conceito desse tipo de prática.",
+        "B": "mostrar a contrariedade das mídias com relação a essa atitude.",
+        "C": "criticar o impacto dessa cultura sobre a vida representada nas redes.",
+        "D": "evidenciar a democratização dessa prática na sociedade virtual.",
+        "E": "discorrer historicamente sobre a origem e as causas dessa cultura."
+      },
+      "correct_choice": "C",
+      "explanation": {
+        "text": "A alternativa correta é a **C) criticar o impacto dessa cultura sobre a vida representada nas redes.**\\n\\nO texto \"El virus de la cancelación\" inicia-se com uma definição da cultura do cancelamento, descrevendo-a como a prática de \"quitarle apoyo\" (retirar apoio) a figuras públicas ou empresas após ações ou declarações consideradas ofensivas. Ele também reconhece que essa estratégia possui raízes históricas em diversas lutas sociais, como as anticoloniais e pelos direitos humanos, e menciona um aspecto potencialmente positivo: a socialização de ferramentas críticas para desmantelar desigualdades.\\n\\nContudo, a argumentação central do texto se desenvolve a partir da pergunta \"¿dónde radica el problema?\" (onde reside o problema?). A partir desse ponto, o autor direciona o foco para uma crítica contundente aos \"efectos adversos\" (efeitos adversos) da \"popularización irrestricta y el uso amplificado de esta herramienta por fuera de sus contextos colectivos de emergencia\" (popularização irrestrita e o uso amplificado desta ferramenta fora de seus contextos coletivos de emergência).\\n\\nO texto objetiva, principalmente, criticar como essa cultura impacta a sociedade contemporânea, especialmente a vida mediada pelas telas e redes sociais. Isso é evidenciado na descrição de uma \"sociedad atravesada por las pantallas como formas de encierro-consumo\" (sociedade atravessada pelas telas como formas de encarceramento-consumo), onde \"la representación online como única esfera pública\" (a representação online como única esfera pública) e um \"imperativo felicista cuya moral nos obliga a trabajar ansiosamente por una vida sin desacuerdos, sin errores y sin dolor, a como dé lugar\" (imperativo de felicidade cuja moral nos obriga a trabalhar ansiosamente por uma vida sem desacordos, sem erros e sem dor, custe o que custar) distorcem a aplicação dessas ferramentas críticas. A crítica reside no fato de que, nesse contexto, a cultura do cancelamento pode gerar mais ansiedade e menos espaço para o diálogo ou para o erro construtivo, impactando negativamente a vida representada (e vivida) nas redes.\\n\\nAnalisando as outras opções:\\n* **A) apresentar o conceito desse tipo de prática:** Embora o texto comece conceituando a prática, este é um ponto de partida para a discussão, não o objetivo final da argumentação. A argumentação progride para uma análise crítica mais profunda.\\n* **B) mostrar a contrariedade das mídias com relação a essa atitude:** O texto não foca na posição específica das mídias em si, mas aborda o impacto social mais amplo da cultura do cancelamento, especialmente no ambiente online e na cultura contemporânea.\\n* **D) evidenciar a democratização dessa prática na sociedade virtual:** O texto menciona a \"socialización de herramientas críticas\", que pode ter um aspecto democratizante. No entanto, o tom principal da argumentação é de crítica à \"popularización irrestricta\" e aos seus \"efectos adversos\", e não uma celebração ou simples evidência de sua democratização. A crítica sobrepõe-se a essa observação.\\n* **E) discorrer historicamente sobre a origem e as causas dessa cultura:** O texto menciona brevemente as origens históricas (\"Es una estrategia muy extendida en la historia de las luchas...\"), mas não se aprofunda nelas como seu objetivo principal. Seu foco é mais nos problemas e impactos contemporâneos da prática do que em uma análise histórica exaustiva de suas origens e múltiplas causas.\\n\\nPortanto, a principal intenção da argumentação do texto é criticar os impactos negativos e as distorções da cultura do cancelamento na forma como a vida é representada e vivenciada no contexto das redes sociais e da sociedade digital atual.",
+        "source": "ai_generated",
+        "verified": false,
+        "verified_at": null,
+        "verified_by": null
+      },
+      "images": null,
+      "subject_area": [
+        "LINGUAGENS, CÓDIGOS E SUAS TECNOLOGIAS",
+        "Espanhol"
+      ],
+      "specific_topic": "Interpretação de texto",
+      "keywords": [
+        "Cultura do cancelamento",
+        "Objetivo do texto",
+        "Argumentação",
+        "Impacto (implícito na crítica)",
+        "Redes (contexto da discussão)"
+      ],
+      "difficulty": "Médio",
+      "knowledge_refs": [
+        {
+          "mention": "Revista Meio Mundo – Artigo “A cultura do cancelamento nas redes” (UFSM)",
+          "content": "Analisa como o cancelamento afeta a vida on-line, destacando impactos psicológicos e sociais gerados pelas redes – foco idêntico ao texto da questão, que critica tais efeitos.",
+          "href": "https://www.ufsm.br/midias/experimental/meio-mundo/2024/03/12/a-cultura-do-cancelamento-nas-redes"
+        },
+        {
+          "mention": "Artigo acadêmico PDF – “As Relações Sociais e a Cultura do Cancelamento na Internet” (IMEPAC)",
+          "content": "Estudo empírico sobre consequências do cancelamento no ambiente virtual, incluindo danos à saúde mental; ótimo para embasar a interpretação crítica cobrada na alternativa correta.",
+          "href": "https://revistamaster.imepac.edu.br/RM/article/download/487/280/2607"
+        },
+        {
+          "mention": "Pew Research Center – Relatório “Americans and Cancel Culture”",
+          "content": "Pesquisa mostra percepções opostas: responsabilização X censura, evidenciando a contradição e o impacto moral nas redes que o texto problematiza.",
+          "href": "https://www.pewresearch.org/internet/2021/05/19/americans-and-cancel-culture-where-some-see-calls-for-accountability-others-see-censorship-punishment/"
+        },
+        {
+          "mention": "Time Magazine – Artigo “Cancel Culture Is Not Real – At Least Not in the Way People Think”",
+          "content": "Reflete sobre mal-entendidos e abusos do cancelamento, reforçando a crítica a seus efeitos sociais e ao ambiente digital.",
+          "href": "https://time.com/5735403/cancel-culture-is-not-real/"
+        },
+        {
+          "mention": "Livro “La cultura de la cancelación y su impacto en los derechos fundamentales” (Palestra Editores, 2023)",
+          "content": "Obra jurídica que discute perigos da prática para a liberdade de expressão, alinhando-se ao tom crítico do texto da prova.",
+          "href": "https://palestraeditores.com/producto/la-cultura-de-la-cancelacion-y-su-impacto-en-los-derechos-fundamentales/"
+        },
+        {
+          "mention": "YouTube – Vídeo “Cultura do Cancelamento – Brasil Escola”",
+          "content": "Explica conceito e consequências do cancelamento na sociedade digital, ajudando a compreender por que o texto condena tais práticas nas redes.",
+          "href": "https://www.youtube.com/watch?v=LoSqZBM0eYE"
+        },
+        {
+          "mention": "Wikipedia (pt) – Verbete “Cultura do cancelamento”",
+          "content": "Apresenta definição, histórico recente e críticas, útil para revisar o conceito central exigido na questão.",
+          "href": "https://pt.wikipedia.org/wiki/Cultura_do_cancelamento"
+        }
+      ],
+      "indexable": true,
+      "active": true,
+      "embedding_status": "pending",
+      "source_type": "official_questions"
+    },
+    {
+      "question_id": "Q2_esp",
+      "statement": "“Y si llueve, que llueva” es un refrán gallego. Para mí cobró\nsentido una noche de febrero, cuando vivía en el barrio de la\nMacarena de Sevilla con dos buenos amigos, gallegos también.\nMi compañero y yo nos decidimos a salir ese sábado\nde noche, pese a que había estado lloviendo algunas\nhoras a lo largo del día. La idea era una locura, al parecer.\nLe propusimos salir “de parranda” con nosotros a una\namiga andaluza, ésta respondió que no, nos dijo que no\niba a salir un día de lluvia. Flipamos. Comentamos entre\nnosotros que si los gallegos no saliésemos de casa cuando\nllueve, en invierno saldríamos poco. Habríamos inventado\nel confinamiento hace mucho.\nLos gallegos no dejamos de salir por la lluvia.\nO comportamento dos personagens narrado no texto\ndestaca o(a)",
+      "statement_html": "<p>“Y si llueve, que llueva” es un refrán gallego. Para mí cobró sentido una noche de febrero, cuando vivía en el barrio de la Macarena de Sevilla con dos buenos amigos, gallegos también.</p><p>Mi compañero y yo nos decidimos a salir ese sábado de noche, pese a que había estado lloviendo algunas horas a lo largo del día. La idea era una locura, al parecer. Le propusimos salir “de parranda” con nosotros a una amiga andaluza, ésta respondió que no, nos dijo que no iba a salir un día de lluvia. Flipamos. Comentamos entre nosotros que si los gallegos no saliésemos de casa cuando llueve, en invierno saldríamos poco. Habríamos inventado el confinamiento hace mucho.</p><p>Los gallegos no dejamos de salir por la lluvia.</p><p data-align=\"right\"><small>Disponível em: https://politicahora.es. Acesso em: 26 out. 2021.</small></p><p>O comportamento dos personagens narrado no texto destaca o(a)</p>",
+      "choices": {
+        "A": "abandono da própria identidade.",
+        "B": "medo dos perigos durante a noite.",
+        "C": "influência do grupo na tomada de decisão.",
+        "D": "diferença cultural entre galegos e andaluzes.",
+        "E": "variação meteorológica entre Sevilha e Galiza."
+      },
+      "correct_choice": "D",
+      "explanation": {
+        "text": "A alternativa correta é a **D) diferença cultural entre galegos e andaluzes.**\\n\\nO texto narra uma experiência do narrador, que é galego, e seus amigos, também galegos, em Sevilha. O cerne da narrativa é o contraste entre o comportamento e a atitude dos galegos em relação à chuva e o comportamento de uma amiga andaluza na mesma situação.\\n\\nOs seguintes pontos do texto evidenciam essa diferença cultural:\\n\\n1.  **O ditado galego e a identidade cultural:** O texto começa com o refrão galego \"Y si llueve, que llueva\" (E se chove, que chova), que já estabelece uma perspectiva cultural de aceitação ou até mesmo de desafio à chuva. O narrador menciona que essa frase \"cobró sentido\" (fez sentido) para ele naquela noite, reforçando sua identidade galega. A afirmação \"Los gallegos no dejamos de salir por la lluvia\" (Nós, galegos, não deixamos de sair por causa da chuva) sela essa característica cultural.\\n\\n2.  **A decisão dos galegos em contraste com a andaluza:** Apesar de ter chovido durante horas em Sevilha (\"había estado lloviendo algunas horas\"), o narrador e seus amigos galegos decidem sair. Eles convidam uma amiga andaluza, que \"respondió que no, nos dijo que no iba a salir un día de lluvia\" (respondeu que não, disse-nos que não ia sair num dia de chuva). Essa recusa, baseada explicitamente na chuva, contrasta diretamente com a disposição dos galegos.\\n\\n3.  **A reação e o comentário dos galegos:** A recusa da amiga andaluza causa surpresa e um certo espanto nos galegos (\"Flipamos\"). Eles comentam entre si que, se os galegos não saíssem de casa quando chove, \"en invierno saldríamos poco\" (no inverno sairíamos pouco), uma referência ao clima chuvoso da Galícia e como isso moldou seus hábitos.\\n\\nEsses elementos demonstram claramente que o comportamento dos personagens em relação à chuva não é apenas uma preferência individual, mas está enraizado em suas respectivas culturas. A narrativa destaca como o mesmo fenômeno (chuva) elicia respostas diferentes de pessoas de diferentes origens culturais (galega e andaluza).\\n\\nAnalisando as outras opções:\\n* **A) abandono da própria identidade:** Pelo contrário, os personagens galegos reafirmam e explicam aspectos de sua identidade cultural.\\n* **B) medo dos perigos durante a noite:** O texto não menciona medo ou perigos noturnos; a decisão de sair ou não está unicamente ligada à chuva.\\n* **C) influência do grupo na tomada de decisão:** Embora os galegos tomem a decisão de sair em grupo, o foco principal do texto não é a dinâmica de grupo em si, mas o contraste cultural entre o grupo galego e a amiga andaluza. A decisão dela é individual e oposta à norma cultural apresentada pelos galegos.\\n* **E) variação meteorológica entre Sevilha e Galiza:** Embora o texto implique que chove mais na Galiza do que talvez em Sevilha (levando ao comentário \"en invierno saldríamos poco\"), o destaque não é a comparação dos climas, mas sim a diferença nas *atitudes culturais* em resposta à chuva que está ocorrendo em Sevilha, local onde ambos os grupos se encontram.\\n\\nPortanto, o texto destaca fundamentalmente a diferença cultural entre galegos e andaluzes em sua forma de encarar e reagir a um dia chuvoso.",
+        "source": "ai_generated",
+        "verified": false,
+        "verified_at": null,
+        "verified_by": null
+      },
+      "images": null,
+      "subject_area": [
+        "LINGUAGENS, CÓDIGOS E SUAS TECNOLOGIAS",
+        "Espanhol"
+      ],
+      "specific_topic": "Interpretação de texto",
+      "keywords": [
+        "Comportamento dos personagens",
+        "Diferença cultural",
+        "Galegos vs. Andaluzes",
+        "Reação à chuva",
+        "Aspectos socioculturais"
+      ],
+      "difficulty": "Médio",
+      "knowledge_refs": [
+        {
+          "mention": "El Confidencial – “Se chove, que chova: la curiosa expresión gallega que refleja su carácter”",
+          "content": "Explora o provérbio galego «Y si llueve, que llueva» e mostra como ele traduz a atitude dos galegos de continuar suas atividades mesmo com chuva, ponto-chave para entender a diferença cultural destacada na questão.",
+          "href": "https://www.elconfidencial.com/espana/galicia/2025-03-19/curiosa-expresion-gallega-meteorologia-1qrt-1tna_4089277/"
+        },
+        {
+          "mention": "OKDIARIO – “El refrán gallego que alude a lo incontrolable”",
+          "content": "Analisa o mesmo provérbio e reforça a ideia de resiliência dos galegos, que não deixam de sair por causa da chuva, contrastando com a reação de andaluzes.",
+          "href": "https://okdiario.com/curiosidades/refran-gallego-que-dicen-muchos-espanoles-pero-que-nadie-entiende-alude-lo-incontrolable-14459636"
+        },
+        {
+          "mention": "Wikipedia – “Clima de Galicia”",
+          "content": "Apresenta dados climáticos que justificam o hábito galego de conviver com chuva frequente, informação útil para contextualizar o comportamento narrado.",
+          "href": "https://es.wikipedia.org/wiki/Clima_de_Galicia"
+        },
+        {
+          "mention": "Wikipedia – “Clima de Andalucía”",
+          "content": "Mostra o clima significativamente mais seco e ensolarado da Andaluzia, ajudando a explicar por que um andaluz pode estranhar sair em dias chuvosos.",
+          "href": "https://es.wikipedia.org/wiki/Clima_de_Andaluc%C3%ADa"
+        },
+        {
+          "mention": "Profe-de-español – “Andalucía: más que sus estereotipos”",
+          "content": "Texto didático que descreve costumes e estereótipos andaluzes, permitindo comparar hábitos regionais espanhóis e entender o contraste cultural do enunciado.",
+          "href": "https://www.profe-de-espanol.de/2025/02/26/andalucia-mas-que-sus-estereotipos/"
+        },
+        {
+          "mention": "Plataforma Assaad – Resolução comentada da questão (Espanhol – ENEM 2024, Caderno Azul, Q. 02)",
+          "content": "Comentário em português que demonstra passo a passo por que a alternativa correta aborda a diferença cultural entre galegos e andaluzes.",
+          "href": "https://plataformaassaad.com.br/questao-02-caderno-azul-do-enem-2024-d1-espanhol/"
+        }
+      ],
+      "indexable": true,
+      "active": true,
+      "embedding_status": "pending",
+      "source_type": "official_questions"
+    },
+    {
+      "question_id": "Q6",
+      "statement": "Expressões e termos utilizados no Amazonas\nsão retratados em livro e em camisetas\n“Na linguagem, podemos nos ver da forma mais\nverdadeira: nossas crenças, nossos valores, nosso lugar\nno mundo”, afirmou o doutor em linguística e professor da\nUfam em seu livro Amazonês: expressões e termos usados\nno Amazonas. Portanto, o amazonense, com todas as suas\n“cunhantãs” e “curumins”, acaba por encontrar um lugar no\nmundo e formar uma unidade linguística, informalmente\ndenominada de português “caboco”, que muito se diferencia\ndo português “mineiro”, “gaúcho”, “carioca” e de tantos\noutros espalhados pelo Brasil. O livro, que conta com cerca\nde 1100 expressões e termos típicos do falar amazonense,\nlevou dez anos para ser construído. Para o autor, o principal\nobjetivo da obra é registrar a linguagem.\nUm designer amazonense também acha o amazonês\n“xibata”, tanto é que criou uma série de camisetas estampadas\ncom o nome de Caboquês Ilustrado, que mistura o bom\nhumor com as expressões típicas da região. A coleção conta\ncom sete modelos já lançados, entre eles: Leseira Baré,\nXibata no Balde e Até o Tucupi, e 43 ainda na fila de espera.\nPara o criador, as camisas têm como objetivo “resgatar o\norgulho do povo manauara, do povo do Norte”.\nA reportagem apresenta duas iniciativas: o livro Amazonês\ne as camisetas do Caboquês Ilustrado. Com temática em\ncomum, essas iniciativas",
+      "statement_html": "<h1><strong>Expressões e termos utilizados no Amazonas<br>são retratados em livro e em camisetas</strong></h1><p>“Na linguagem, podemos nos ver da forma mais verdadeira: nossas crenças, nossos valores, nosso lugar no mundo”, afirmou o doutor em linguística e professor da Ufam em seu livro <strong>Amazonas: expressões e termos usados no Amazonas</strong>. Portanto, o amazonense, com todas as suas “cunhantãs” e “curumins”, acaba por encontrar um lugar no mundo e formar uma unidade linguística, informalmente denominada de português “caboco”, que muito se diferencia do português “mineiro”, “gaúcho”, “carioca” e de tantos outros espalhados pelo Brasil. O livro, que conta com cerca de 1100 expressões e termos típicos do falar amazonense, levou dez anos para ser construído. Para o autor, o principal objetivo da obra é registrar a linguagem.</p><p>Um designer amazonense também acha o amazonês “xibata”, tanto é que criou uma série de camisetas estampadas com o nome de Cabocês Ilustrado, que mistura o bom humor com as expressões típicas da região. A coleção conta com sete modelos já lançados, entre eles: Leseira Baré, Xibata no Balde e Até o Tucupi, e 43 ainda na fila de espera. Para o criador, as camisas têm como objetivo “resgatar o orgulho do povo manauara, do povo do Norte”.</p><p><small>Disponível em: https://g1.globo.com. Acesso em: 15 jan. 2024 (adaptado).</small></p><p>A reportagem apresenta duas iniciativas: o livro <strong>Amazonas</strong> e as camisetas do Cabocês Ilustrado. Com temática em comum, essas iniciativas</p>",
+      "choices": {
+        "A": "recomendam produtos feitos por empreendedores da região Norte.",
+        "B": "ressaltam diferenças entre o falar manauara e outros falares.",
+        "C": "reverenciam o trabalho feito por pesquisadores brasileiros.",
+        "D": "destacam a descontração no jeito de ser do amazonense.",
+        "E": "valorizam o repertório linguístico do povo do Amazonas."
+      },
+      "correct_choice": "E",
+      "explanation": {
+        "text": "A alternativa correta é a **E) valorizam o repertório linguístico do povo do Amazonas.**\\n\\nA reportagem apresenta duas iniciativas distintas que se dedicam a destacar e preservar as particularidades da linguagem utilizada no Amazonas: um livro acadêmico e uma linha de camisetas. Ambas, em sua essência, compartilham o objetivo de valorizar o patrimônio linguístico da região.\\n\\n1.  **O livro \"Amazonês: expressões e termos usados no Amazonas\":**\\n    * Esta obra, resultado de dez anos de pesquisa de um doutor em linguística e professor da Ufam, tem como principal objetivo \"registrar a linguagem\" do Amazonas. Ao documentar cerca de 1100 expressões e termos típicos do \"falar amazonense\" ou \"português 'caboco'\", o livro não apenas preserva essa forma de comunicação, mas também a legitima e a eleva como objeto de estudo e conhecimento.\\n    * A citação inicial do professor – \"Na linguagem, podemos nos ver da forma mais verdadeira: nossas crenças, nossos valores, nosso lugar no mundo\" – reforça que o trabalho de registrar esse repertório é uma forma de valorizar a identidade cultural, as crenças e os valores do povo amazônico expressos através de sua fala única.\\n\\n2.  **As camisetas do \"Caboquês Ilustrado\":**\\n    * A iniciativa do designer amazonense de criar camisetas estampadas com expressões regionais, misturando humor e tipicidade, também serve para valorizar o repertório linguístico local.\\n    * O objetivo explícito do criador das camisetas é \"resgatar o orgulho do povo manauara, do povo do Norte\". Ao transformar as expressões locais em arte vestível e motivo de orgulho, ele as retira de um possível lugar de informalidade ou esquecimento e as celebra publicamente, afirmando seu valor e sua importância para a identidade regional.\\n\\nPortanto, tanto o livro, através do registro acadêmico e da análise cultural, quanto as camisetas, por meio da expressão artística e da promoção do orgulho regional, dedicam-se a dar importância, reconhecimento e valor ao conjunto de palavras, expressões e formas de falar característicos do povo do Amazonas.\\n\\nAnálise das outras opções:\\n* **A) recomendam produtos feitos por empreendedores da região Norte:** Embora o livro e as camisetas sejam produtos de criadores da região Norte, o foco da reportagem e das iniciativas em si não é a recomendação comercial, mas a valorização cultural e linguística.\\n* **B) ressaltam diferenças entre o falar manauara e outros falares:** O livro menciona que o \"português 'caboco'\" se diferencia de outros falares, e as camisetas, ao usarem expressões locais, implicitamente mostram essa singularidade. Contudo, o ato de \"valorizar\" (opção E) é mais abrangente e central do que apenas \"ressaltar diferenças\". A valorização envolve reconhecer a riqueza e a importância intrínseca desse falar, e não apenas compará-lo.\\n* **C) reverenciam o trabalho feito por pesquisadores brasileiros:** A iniciativa do livro é, de fato, de um pesquisador brasileiro. No entanto, a iniciativa das camisetas é de um designer. Logo, este não é um tema comum que englobe ambas as iniciativas como seu foco principal.\\n* **D) destacam a descontração no jeito de ser do amazonense:** As camisetas incorporam o \"bom humor\". No entanto, o livro visa registrar \"crenças, valores, nosso lugar no mundo\" através da linguagem, o que vai além da mera descontração. Assim, este não é o tema comum e primordial de ambas.\\n\\nConclui-se que o elemento temático comum e fundamental a ambas as iniciativas é a valorização do repertório linguístico do povo do Amazonas.",
+        "source": "ai_generated",
+        "verified": false,
+        "verified_at": null,
+        "verified_by": null
+      },
+      "images": null,
+      "subject_area": [
+        "LINGUAGENS, CÓDIGOS E SUAS TECNOLOGIAS",
+        "Português"
+      ],
+      "specific_topic": "Interpretação de texto",
+      "keywords": [
+        "Iniciativas (livro e camisetas)",
+        "Temática em comum",
+        "Repertório linguístico",
+        "Amazonas / Amazonense",
+        "Valorização"
+      ],
+      "difficulty": "Médio",
+      "knowledge_refs": [
+        {
+          "mention": "UFAM – “Amazonês - Glossário que reúne as expressões e os termos falados pelos amazonenses chega à 4ª edição”",
+          "content": "Notícia oficial sobre o livro de Sérgio Freire, explicando que a obra nasceu para registrar e valorizar o repertório linguístico do Amazonas, ponto-chave da alternativa correta.",
+          "href": "https://ufam.edu.br/noticias/5918-amazones-glossario-que-reune-expressoes-faladas-no-amazonas-chega-a-4-edicao.html"
+        },
+        {
+          "mention": "D24AM – “Caboquês Ilustrado lança canecas com expressões regionais”",
+          "content": "Reportagem que mostra a marca estampando gírias amazonenses em produtos para ‘resgatar o orgulho do povo manauara’, evidenciando a mesma valorização linguística apontada no texto-base.",
+          "href": "https://d24am.com/plus/caboques-ilustrado-lanca-canecas-com-expressoes-regionais/"
+        },
+        {
+          "mention": "Editora Valer – Página do livro “Amazonês – Termos e Expressões Usadas no Amazonas”",
+          "content": "Sinopse destaca que o glossário resulta de pesquisa linguística rigorosa e preserva a fala cabocla, reforçando a importância cultural do vocabulário regional.",
+          "href": "https://www.editoravaler.com.br/index.php?product_id=1528&route=product%2Fproduct"
+        },
+        {
+          "mention": "Plataforma Assaad – Resolução comentada da Questão 06 (ENEM 2024, Caderno Azul)",
+          "content": "Análise que demonstra por que a resposta correta é ‘valorizar o repertório linguístico do povo do Amazonas’, conectando livro e camisetas ao mesmo objetivo.",
+          "href": "https://plataformaassaad.com.br/questao-06-caderno-azul-do-enem-2024/"
+        },
+        {
+          "mention": "YouTube – “10 Gírias ou Expressões que só o Amazonense / Manauara Manja!”",
+          "content": "Vídeo que apresenta de forma descontraída gírias típicas de Manaus, ilustrando o repertório citado na reportagem e ajudando a compreender seu valor cultural.",
+          "href": "https://www.youtube.com/watch?v=h3eXE9s-jfc"
+        },
+        {
+          "mention": "Descomplica – Explicação ‘Expressões e termos utilizados no Amazonas’ (gabarito ENEM 2024)",
+          "content": "Comentário em português que confirma o gabarito ‘E’ e discute como o texto reflete a valorização do falar amazonense.",
+          "href": "https://descomplica.com.br/gabarito-enem/questoes/2024/primeiro-dia/reportagem-apresenta-duas-iniciativas-o-livro-amazones-e-camisetas/"
+        }
+      ],
+      "indexable": true,
+      "active": true,
+      "embedding_status": "pending",
+      "source_type": "official_questions"
+    },
+    {
+      "question_id": "Q20",
+      "statement": "Sempre passo nervoso quando leio minha crônica\nneste jornal e percebo que escapuliu a palavra “coisa” em\nalguma frase. Acontece que “coisa” está entre as coisas\nmais deliciosas do mundo.\nO primeiro banho da minha filha foi embalado pela\nminha voz dizendo, ao fundo, “cuidado, ela ainda é uma\ncoisinha tão pequena”. “Viu só que amor? Nunca vi coisa\nassim”. O amor que não dá conta de explicação é “a coisa”\nem seu esplendor e excelência. “Alguma coisa acontece\nno meu coração” é a frase mais bonita que alguém já disse\nsobre São Paulo. E quando Caetano, citado aqui pela\nterceira vez pra defender a dimensão poética da coisa,\ndiz “coisa linda”, nós sabemos que nenhuma palavra\ndefiniria de forma mais profunda e literária o quão bela e\namada uma coisa pode ser.\n“Coisar” é verbo de quem está com pressa ou tem\nlapsos de memória. É pra quando “mexe qualquer coisa\ndentro doida”. E que coisa magnífica poder se expressar\ntal qual Caetano Veloso. Agora chega, porque “esse papo\njá tá qualquer coisa” e eu já tô “pra lá de Marrakech”.\nO recurso utilizado na progressão textual para garantir a\nunidade temática dessa crônica é a",
+      "statement_html": "<p>Sempre passo nervoso quando leio minha crônica neste jornal e percebo que escapuliu a palavra “coisa” em alguma frase. Acontece que “coisa” está entre as coisas mais deliciosas do mundo.</p><p>O primeiro banho da minha filha foi embalado pela minha voz dizendo, ao fundo, “cuidado, ela ainda é uma coisinha tão pequena”. “Viu só que amor? Nunca vi coisa assim”. O amor que não dá conta de explicação é “a coisa” em seu esplendor e excelência. “Alguma coisa acontece no meu coração” é a frase mais bonita que alguém já disse sobre São Paulo. E quando Caetano, citado aqui pela terceira vez pra defender a dimensão poética da coisa, diz “coisa linda”, nós sabemos que nenhuma palavra definiria de forma mais profunda e literária o quão bela e amada uma coisa pode ser.</p><p>“Coisar” é verbo de quem está com pressa ou tem lapsos de memória. É pra quando “mexe qualquer coisa dentro doida”. E que coisa magnífica poder se expressar tal qual Caetano Veloso. Agora chega, porque “esse papo já tá qualquer coisa” e eu já tô “pra lá de Marrakech”.</p><p><small>TATI BERNARDI.<br>Disponível em: www1.folha.uol.com.br. Acesso em: 3 jan. 2024 (adaptado).</small></p><p>O recurso utilizado na progressão textual para garantir a unidade temática dessa crônica é a</p>",
+      "choices": {
+        "A": "intertextualidade, marcada pela citação de versos de letras de canções",
+        "B": "metalinguagem, marcada pela referência à escrita de crônicas pela autora.",
+        "C": "reiteração, marcada pela repetição de uma determinada palavra e de seus cognatos.",
+        "D": "conexão, marcada pela presença dos conectores lógicos “quando” e “porque” entre orações.",
+        "E": "pronominalização, marcada pela retomada de “minha filha” e “um namorado ruim” pelos pronomes “ela” e “lo”."
+      },
+      "correct_choice": "C",
+      "explanation": {
+        "text": "A alternativa correta é a **C) reiteração, marcada pela repetição de uma determinada palavra e de seus cognatos.**\\n\\nA unidade temática de uma crônica é mantida quando o texto consistentemente foca em um tema central ao longo de sua progressão. Na crônica de Tati Bernardi, o tema central é inequivocamente a palavra \"coisa\", suas nuances, usos e a relação da autora com ela. O recurso mais proeminente e direto que garante essa unidade temática é a **reiteração**.\\n\\n1.  **Foco Mantido pela Repetição:** A palavra \"coisa\" e seus cognatos (\"coisas\", \"coisinha\", o verbo \"Coisar\", a expressão \"qualquer coisa\") são repetidos inúmeras vezes ao longo de todo o texto. Essa repetição sistemática funciona como um fio condutor que amarra todas as partes da crônica, desde a introdução até a conclusão, mantendo a palavra \"coisa\" sempre em primeiro plano na mente do leitor.\\n\\n2.  **Progressão através da Exploração da Palavra Reiterada:** A crônica avança explorando diferentes contextos e significados atribuídos à palavra \"coisa\":\\n    * A autora inicia falando de seu nervosismo ao perceber que a palavra \"coisa\" escapuliu em suas crônicas.\\n    * Em seguida, defende que \"coisa\" está entre as \"coisas mais deliciosas do mundo\".\\n    * Ilustra com exemplos: a filha como \"uma coisinha tão pequena\", o amor como \"a coisa\" inexplicável, a canção \"Alguma coisa acontece no meu coração\", Caetano usando \"coisa linda\".\\n    * Define o verbo \"Coisar\".\\n    * Conclui com a frase \"'esse papo já tá qualquer coisa'\".\\n    Em cada um desses momentos da progressão textual, a palavra \"coisa\" ou uma de suas variações é explicitamente utilizada, garantindo que todos os exemplos e reflexões estejam diretamente ancorados no tema principal.\\n\\n3.  **Função Unificadora da Reiteração:** A reiteração, neste contexto, não é uma mera repetição vazia, mas uma estratégia discursiva que permite à autora explorar a polissemia e a versatilidade da palavra \"coisa\". Ao trazer a palavra de volta em diferentes situações, ela constrói um painel coeso sobre o termo, e é essa constância na referência que garante a unidade temática.\\n\\nEmbora outros recursos também estejam presentes:\\n* **B) Metalinguagem:** É evidente na introdução, onde a autora reflete sobre seu próprio ato de escrever crônicas e o uso da palavra \"coisa\". Este recurso serve para introduzir o tema, mas a sua continuidade e a exploração aprofundada são sustentadas pela reiteração da palavra em foco.\\n* **A) Intertextualidade:** As citações de Caetano Veloso e de outras canções são importantes para ilustrar o uso e a relevância da palavra \"coisa\", mas elas se integram ao tema central justamente porque ecoam ou utilizam a palavra \"coisa\", cuja centralidade é mantida pela sua repetição.\\n\\nPortanto, é a repetição constante e intencional da palavra \"coisa\" e seus cognatos que funciona como o principal mecanismo para assegurar a unidade temática da crônica, mantendo-a firmemente centrada na exploração desse termo.",
+        "source": "ai_generated",
+        "verified": false,
+        "verified_at": null,
+        "verified_by": null
+      },
+      "images": null,
+      "subject_area": [
+        "LINGUAGENS, CÓDIGOS E SUAS TECNOLOGIAS",
+        "Português"
+      ],
+      "specific_topic": "Mecanismos estilísticos e linguísticos - recursos de coesão e progressão textual",
+      "keywords": [
+        "Recursos de coesão",
+        "Recursos de progressão",
+        "Reiteração / Repetição",
+        "Coisa",
+        "Valorização"
+      ],
+      "difficulty": "Médio",
+      "knowledge_refs": [
+        {
+          "mention": "Toda Matéria – artigo “Coesão referencial: reiteração”",
+          "content": "Explica que a reiteração é a repetição de um mesmo item lexical (ou de sinônimos/hiperônimos) para manter a unidade temática; cita explicitamente o uso de palavras genéricas como “coisa”, exemplo central da crônica de Tati Bernardi.",
+          "href": "https://www.todamateria.com.br/coesao-referencial/"
+        },
+        {
+          "mention": "Brasil Escola – artigo “Coesão textual: o que é, tipos e exemplos”",
+          "content": "Mostra os mecanismos de coesão, destacando a ‘repetição lexical’ como forma de continuidade temática, o que corresponde ao recurso indicado como resposta na questão.",
+          "href": "https://brasilescola.uol.com.br/redacao/coesao.htm"
+        },
+        {
+          "mention": "Gonçalves, L. C. – dissertação “A Coesão Lexical” (UFMG, 2000)",
+          "content": "Capítulo 5 apresenta a reiteração por repetição e palavras de sentido geral (ex.: ‘coisa’) como estratégia de coesão lexical, oferecendo base teórica sólida para reconhecer esse recurso em textos literários e jornalísticos.",
+          "href": "https://repositorio.ufmg.br/bitstream/1843/BUBD-AA9P8C/1/ppgestudoslinguisticos_luizcarlosgoncalves_dissertacaomestrado.pdf"
+        },
+        {
+          "mention": "YouTube – vídeo “Coesão: Reiteração, Associação e Conexão” (canal Linguística & Texto)",
+          "content": "Aula prática que diferencia os tipos de coesão lexical, com exemplos visuais de reiteração por repetição de palavras, ajudando a identificar o mesmo procedimento na crônica cobrada na prova.",
+          "href": "https://www.youtube.com/watch?v=R1BPrJkI71Q"
+        },
+        {
+          "mention": "YouTube – vídeo “Coesão textual: lexical – Brasil Escola”",
+          "content": "Explica passo a passo como a repetição controlada de um vocábulo mantém a progressão temática do texto; excelente para revisar rapidamente antes da prova.",
+          "href": "https://www.youtube.com/watch?v=ibCLS59n1FA"
+        },
+        {
+          "mention": "Ciberdúvidas da Língua Portuguesa – “Tipos de coesão”",
+          "content": "Disponibiliza quadro sintético sobre coesão lexical por reiteração e outros mecanismos, facilitando a comparação entre recursos e confirmando por que a alternativa correta não é intertextualidade, metalinguagem ou pronominalização.",
+          "href": "https://ciberduvidas.iscte-iul.pt/consultorio/perguntas/tipos-de-coesao/36609"
+        }
+      ],
+      "indexable": true,
+      "active": true,
+      "embedding_status": "pending",
+      "source_type": "official_questions"
+    },
+    {
+      "question_id": "Q46",
+      "statement": "TEXTO I\nUm terremoto de magnitude 5,9 atingiu a cidade de\nValparaíso, na costa chilena. O terremoto ocorreu a uma\nprofundidade de 112 quilômetros.\n\n TEXTO II\nUm tremor de terra de magnitude 4,8 foi registrado\nno município de Atalaia do Norte, no interior do estado do\nAmazonas. O abalo é de magnitude considerada mediana\npara os níveis do Brasil. Os eventos dessa região costumam\nser resultado das atividades da placa de Nazca.\n\nTEXTO III\nMoradores usaram as redes sociais para relatar tremores\nde terra no interior de São Paulo. As atividades foram\nregistradas nas cidades de Júlio Mesquita e Guaimbê e\ntiveram magnitude 3,0 na escala Richter, o que é considerado\npequeno e sem previsão de danos.\n\nAs diferenças entre os eventos geológicos relatados\ndecorrem de distintas posições geográficas das cidades\nem relação a: ",
+      "statement_html": "<p><strong>TEXTO I</strong></p><p>Um terremoto de magnitude 5,9 atingiu a cidade de Valparaíso, na costa chilena. O terremoto ocorreu a uma profundidade de 112 quilômetros.</p><p><small><strong>Terremoto de magnitude 5,9 atinge Valparaíso, no Chile.</strong></small><br><small>Disponível em: www.cnnbrasil.com.br.<br>Acesso em: 6 nov. 2021 (adaptado).</small></p><p><strong>TEXTO II</strong></p><p>Um tremor de terra de magnitude 4,8 foi registrado no município de Atalaia do Norte, no interior do estado do Amazonas. O abalo é de magnitude considerada mediana para os níveis do Brasil. Os eventos dessa região costumam ser resultado das atividades da placa de Nazca.</p><p><small><strong>Tremor de terra de magnitude 4,8 é registrado no interior do Amazonas.</strong></small><br><small>Disponível em: https://g1.globo.com.<br>Acesso em: 6 nov. 2021 (adaptado).</small></p><p><strong>TEXTO III</strong></p><p>Moradores usaram as redes sociais para relatar tremores de terra no interior de São Paulo. As atividades foram registradas nas cidades de Júlio Mesquita e Guaimbê e tiveram magnitude 3,0 na escala Richter, o que é considerado pequeno e sem previsão de danos.</p><p><small><strong>Moradores do interior de SP relatam tremores de terra.</strong></small><br><small>Disponível em: https://noticias.r7.com.<br>Acesso em: 6 nov. 2021 (adaptado).</small></p><p>As diferenças entre os eventos geológicos relatados decorrem de distintas posições geográficas das cidades em relação a:</p>",
+      "choices": {
+        "A": "Planícies costeiras.",
+        "B": "Bacias continentais.",
+        "C": "Zonas de subducção.",
+        "D": "Áreas de denudação.",
+        "E": "Vertentes escarpadas."
+      },
+      "correct_choice": "C",
+      "explanation": {
+        "text": "A alternativa correta é a **C) Zonas de subducção.**\\n\\nA questão busca a razão para as diferenças entre os eventos geológicos (terremotos) relatados nos três textos, considerando a posição geográfica das cidades. Essas diferenças, especialmente em magnitude e frequência, estão fundamentalmente ligadas à tectônica de placas e à proximidade das cidades em relação às zonas de encontro e interação dessas placas, com destaque para as zonas de subducção.\\n\\n1.  **Texto I: Terremoto em Valparaíso, Chile (Magnitude 5,9).**\\n    * Valparaíso está situada na costa do Chile, uma área que faz parte do Círculo de Fogo do Pacífico. Esta região é caracterizada por intensas atividades sísmicas e vulcânicas devido ao encontro da Placa de Nazca com a Placa Sul-Americana. Especificamente, a Placa de Nazca mergulha (sofre subducção) sob a Placa Sul-Americana. Esse processo de subducção gera um enorme acúmulo e liberação de tensão, resultando em terremotos frequentes e, muitas vezes, de grande magnitude, como o de 5,9 descrito. A profundidade mencionada (112 km) também é compatível com sismos ocorridos em zonas de subducção.\\n\\n2.  **Texto II: Tremor de terra no interior do Amazonas (Magnitude 4,8).**\\n    * Atalaia do Norte está localizada no interior do continente. No entanto, o texto crucialmente aponta que \"Os eventos dessa região costumam ser resultado das atividades da placa de Nazca.\" A atividade da Placa de Nazca refere-se justamente à sua subducção sob a Placa Sul-Americana na região andina. As tensões geradas nessa extensa zona de subducção podem se propagar para o interior da placa continental, causando sismos em áreas de fraqueza preexistentes (falhas geológicas) ou influenciando a sismicidade regional. A magnitude (4,8) é menor que a do Chile, o que é esperado, pois a influência da zona de subducção é mais distante ou indireta, ou trata-se de sismicidade intraplaca influenciada pelo campo de tensões regional.\\n\\n3.  **Texto III: Tremores no interior de São Paulo (Magnitude 3,0).**\\n    * As cidades paulistas mencionadas (Júlio Mesquita e Guaimbê) localizam-se no interior da Placa Sul-Americana, uma área considerada relativamente estável e distante das bordas ativas de placas tectônicas, incluindo as zonas de subducção. Tremores de terra nessas regiões são geralmente de baixa magnitude (3,0 é classificado como pequeno) e são atribuídos a atividades intraplaca, como a reativação de falhas geológicas antigas devido ao acúmulo lento de tensões na crosta ou à acomodação de camadas rochosas. A ocorrência e a baixa intensidade desses tremores contrastam fortemente com os eventos em zonas de subducção direta.\\n\\n**Conclusão sobre as alternativas:**\\nA opção **C) Zonas de subducção** é a que melhor explica as *diferenças* entre os eventos:\\n* **Chile:** Localização direta sobre uma zona de subducção ativa, resultando em terremotos de maior magnitude.\\n* **Amazonas:** Embora no interior, há uma influência mencionada das atividades da Placa de Nazca (que forma a zona de subducção andina), o que pode explicar tremores de magnitude intermediária.\\n* **São Paulo:** Distante de zonas de subducção ativas, resultando em tremores de baixa magnitude, típicos de regiões intraplaca.\\n\\nAs outras opções não são adequadas:\\n* A) Planícies costeiras: A localização em planície costeira não é, por si só, um fator determinante para a ocorrência ou intensidade de terremotos. Valparaíso é costeira, mas as outras localidades não.\\n* B) Bacias continentais: Embora algumas das áreas possam estar sobre bacias sedimentares, isso não explica a origem primária das diferenças na atividade sísmica em escala tectônica.\\n* D) Áreas de denudação: São áreas onde ocorre o desgaste e remoção de material rochoso, um processo exógeno que não causa terremotos dessa natureza.\\n* E) Vertentes escarpadas: São formas de relevo (encostas íngremes) e não causas de terremotos.\\n\\nPortanto, a relação distinta de cada localidade com as zonas de subducção (proximidade direta, influência indireta ou distância significativa) é o principal fator geológico que explica as diferenças nos eventos sísmicos reportados.",
+        "source": "ai_generated",
+        "verified": false,
+        "verified_at": null,
+        "verified_by": null
+      },
+      "images": null,
+      "subject_area": [
+        "CIÊNCIAS HUMANAS E SUAS TECNOLOGIAS",
+        "Geografia"
+      ],
+      "specific_topic": "Geologia",
+      "keywords": [
+        "Terremotos",
+        "Posições geográficas",
+        "Zonas de subducção",
+        "Placas tectônicas",
+        "Sismicidade"
+      ],
+      "difficulty": "Difícil",
+      "knowledge_refs": [
+        {
+          "mention": "USGS – “Subduction Zone Science”",
+          "content": "Página oficial do Serviço Geológico dos EUA que explica o que são zonas de subducção, por que concentram os terremotos mais fortes e como se diferenciam de sismos intraplaca – informação essencial para entender o caso do terremoto em Valparaíso.",
+          "href": "https://www.usgs.gov/special-topics/subduction-zone-science"
+        },
+        {
+          "mention": "Mundo Educação – “Placas tectônicas: tipos, movimentos, limites”",
+          "content": "Artigo didático em português que descreve os limites convergentes (subducção) e destaca que o Brasil está no interior da Placa Sul-Americana, motivo pelo qual registra apenas abalos de baixa magnitude, como os do Amazonas e de São Paulo.",
+          "href": "https://mundoeducacao.uol.com.br/geografia/placas-tectonicas.htm"
+        },
+        {
+          "mention": "Superinteressante – “Existem terremotos no Brasil: saiba onde e por que eles acontecem”",
+          "content": "Explica por que, mesmo longe de bordas de placas, o Brasil sente pequenos sismos gerados por reativações de falhas internas, contrastando com grandes terremotos de zonas de subducção andinas.",
+          "href": "https://super.abril.com.br/coluna/deriva-continental/existem-terremotos-no-brasil-saiba-onde-e-por-que-eles-acontecem/"
+        },
+        {
+          "mention": "ComCiência/Scielo – “Origem dos terremotos no Nordeste”",
+          "content": "Mostra o efeito compressivo da Placa de Nazca sobre a Placa Sul-Americana e como essa força gera tensões que alcançam o interior do continente, útil para relacionar o abalo no Amazonas à dinâmica da placa subdutora.",
+          "href": "https://comciencia.scielo.br/scielo.php?script=sci_arttext&pid=S1519-76542010000300008"
+        },
+        {
+          "mention": "Britannica – “Nazca Plate: boundary, movement & earthquakes”",
+          "content": "Apresenta as características da Placa de Nazca, sua subducção sob a costa oeste da América do Sul e a associação direta com fortes terremotos no Chile, reforçando o contraste geológico entre Valparaíso e o interior brasileiro.",
+          "href": "https://www.britannica.com/science/Nazca-Plate"
+        },
+        {
+          "mention": "YouTube – “Conheça as PLACAS TECTÔNICAS e seus principais MOVIMENTOS” (canal Toda Matéria)",
+          "content": "Aula em vídeo que diferencia limites convergentes (subducção) de ambientes intraplaca, com animações que facilitam visualizar por que os eventos chilenos são mais intensos que os brasileiros.",
+          "href": "https://www.youtube.com/watch?v=DV47IJ-5qjo"
+        }
+      ],
+      "indexable": true,
+      "active": true,
+      "embedding_status": "pending",
+      "source_type": "official_questions"
+    },
+    {
+      "question_id": "Q48",
+      "statement": "O rompimento da barragem de Fundão levou muito\nconsigo. A lama soterrou sonhos e modificou de forma\npermanente centenas de vidas nascidas e criadas em\nBento Rodrigues e Paracatu, em Mariana (MG). Mas não\nsomente. Ao se estender ao longo do rio, outras famílias e\nhistórias foram atingidas de formas diferentes. Ao fugirem\ndos rejeitos que rapidamente tomaram as localidades,\ndeixaram para trás os resquícios da vida que tiveram até\no 5 de novembro de 2015. Nada jamais seria igual.\nConforme o texto, o evento gerou o seguinte impacto na\nrelação entre as pessoas e o seu espaço vivido:",
+      "statement_html": "<p>O rompimento da barragem de Fundão levou muito consigo. A lama soterrou sonhos e modificou de forma permanente centenas de vidas nascidas e criadas em Bento Rodrigues e Paracatu, em Mariana (MG). Mas não somente. Ao se estender ao longo do rio, outras famílias e histórias foram atingidas de formas diferentes. Ao fugirem dos rejeitos que rapidamente tomaram as localidades, deixaram para trás os resquícios da vida que tiveram até o 5 de novembro de 2015. Nada jamais seria igual.</p><p data-align=\"right\"><small>SANTOS, P. Histórias soterradas. <strong>Curinga</strong>, n. 19, nov. 2016 (adaptado).</small></p><p>Conforme o texto, o evento gerou o seguinte impacto na relação entre as pessoas e o seu espaço vivido:</p>",
+      "choices": {
+        "A": "Flexibilização de parâmetros ambientais.",
+        "B": "Consolidação de identidades regionais.",
+        "C": "Fragilização de vínculos afetivos.",
+        "D": "Supressão de práticas exploratórias.",
+        "E": "Recuperação de tradições ancestrais."
+      },
+      "correct_choice": "C",
+      "explanation": {
+        "text": "A alternativa correta é a **C) Fragilização de vínculos afetivos.**\\n\\nO texto descreve o impacto devastador do rompimento da barragem de Fundão, enfatizando como o evento alterou permanentemente a vida das pessoas e sua conexão com o lugar onde viviam. Essa alteração profunda no \"espaço vivido\" tem como uma de suas consequências mais diretas a fragilização dos vínculos afetivos.\\n\\n---\\n## Explicação Detalhada\\n\\n1.  **Destruição do Espaço Físico e Simbólico:** O texto afirma que \"A lama soterrou sonhos e modificou de forma permanente centenas de vidas\". O \"espaço vivido\" é mais do que apenas o ambiente físico; é onde as pessoas constroem suas vidas, suas relações, suas memórias e seus sonhos. A destruição desse espaço – casas, ruas, paisagens familiares – representa a perda da base material e simbólica sobre a qual muitos vínculos afetivos se estabelecem e se nutrem (com o lar, com a vizinhança, com a comunidade).\\n\\n2.  **Ruptura com a Vida Anterior:** A frase \"Ao fugirem dos rejeitos que rapidamente tomaram as localidades, deixaram para trás os resquícios da vida que tiveram até o 5 de novembro de 2015\" ilustra um corte drástico e doloroso. As pessoas foram forçadas a abandonar não apenas seus bens, mas todo um modo de vida, suas rotinas e os locais que eram palco de suas interações sociais e afetivas. Essa separação abrupta do ambiente conhecido e da rede de relações ali estabelecida leva, invariavelmente, a um enfraquecimento ou, no mínimo, a uma severa provação dos laços afetivos.\\n\\n3.  **Impacto Duradouro e Irreversível:** A constatação de que \"Nada jamais seria igual\" sublinha a profundidade e a permanência da tragédia. Essa impossibilidade de retorno ao estado anterior, a perda do espaço comum e a dispersão das famílias e comunidades atingidas dificultam a manutenção e a reconstrução dos vínculos afetivos da forma como existiam. O trauma, a perda e a necessidade de se reerguer em novos contextos, muitas vezes desfavoráveis, colocam uma enorme pressão sobre essas relações.\\n\\n**Por que as outras alternativas estão incorretas, segundo o texto:**\\n\\n* **A) Flexibilização de parâmetros ambientais:** O texto foca nas consequências humanas e sociais diretas do desastre sobre as vítimas, e não em mudanças ou flexibilizações na política ou legislação ambiental.\\n* **B) Consolidação de identidades regionais:** O evento descrito é um trauma que desestrutura comunidades e causa perdas. Embora a adversidade possa, a longo prazo, gerar novas formas de coesão, o impacto imediato e central apontado pelo texto é de ruptura e modificação permanente, o que tende a fragilizar identidades ligadas ao local perdido, em vez de consolidá-las.\\n* **D) Supressão de práticas exploratórias:** O texto descreve as consequências do rompimento da barragem (ligada a práticas exploratórias), mas não afirma que o impacto do evento na relação das pessoas com seu espaço foi a supressão dessas práticas. O foco está na perda da vida como era antes.\\n* **E) Recuperação de tradições ancestrais:** O texto tem um tom de perda e de uma mudança irreversível (\"Nada jamais seria igual\"), o que contraria a ideia de uma recuperação de tradições como impacto principal do evento descrito.\\n\\nDessa forma, a destruição do \"espaço vivido\" e a consequente perda de referências, memórias e da convivência cotidiana resultaram na fragilização dos vínculos afetivos das pessoas com seu lugar e entre si. 💔",
+        "source": "ai_generated",
+        "verified": false,
+        "verified_at": null,
+        "verified_by": null
+      },
+      "images": null,
+      "subject_area": [
+        "CIÊNCIAS HUMANAS E SUAS TECNOLOGIAS",
+        "Geografia"
+      ],
+      "specific_topic": "Desastre ambiental",
+      "keywords": [
+        "Rompimento de barragem",
+        "Impacto / Consequência",
+        "Relação pessoa-espaço",
+        "Vínculos afetivos",
+        "Barragem de Fundão"
+      ],
+      "difficulty": "Fácil",
+      "knowledge_refs": [
+        {
+          "mention": "Fiocruz – Relatório “Saúde, desastre e reparação: rompimento da barragem de Fundão”",
+          "content": "Documento técnico que descreve o desmonte das redes de convivência e a desagregação familiar/comunitária após a catástrofe, ilustrando a fragilização de vínculos afetivos apontada no gabarito.",
+          "href": "https://portal.fiocruz.br/sites/portal.fiocruz.br/files/documentos/relatorio_saude_desastre_reparacao_mariana.pdf"
+        },
+        {
+          "mention": "Revista Estudos Avançados (USP) – artigo “Mariana: o desastre e seus efeitos sobre as populações atingidas”",
+          "content": "Análise acadêmica que enfatiza a perda de laços de pertença e de memória coletiva entre os moradores deslocados de Bento Rodrigues e Paracatu.",
+          "href": "https://www.revistas.usp.br/estudosavancados/article/view/138252"
+        },
+        {
+          "mention": "Oxfam Brasil – relatório “Reparação Integral: 5 anos do rompimento da barragem de Fundão”",
+          "content": "Mostra que, apesar das indenizações materiais, os afetados relatam ‘rompimento de vínculos sociais, familiares e de vizinhança’ – núcleo do impacto descrito no texto da prova.",
+          "href": "https://www.oxfam.org.br/wp-content/uploads/2021/11/relatorio-5-anos-mariana.pdf"
+        },
+        {
+          "mention": "Tese UFOP – “Entre o luto e a luta: memórias e afetos dos moradores de Bento Rodrigues”",
+          "content": "Estudo etnográfico que detalha como o rompimento destruiu espaços de sociabilidade e enfraqueceu relações afetivas, fundamento da alternativa correta.",
+          "href": "https://www.monografias.ufop.br/bitstream/123456789/2590/1/tese_entre_o_luto_e_a_luta.pdf"
+        },
+        {
+          "mention": "YouTube – documentário “Mariana: A dor ainda mora aqui” (Canal Repórter Brasil)",
+          "content": "Depoimentos de famílias que perderam suas casas e contam a dificuldade de manter vínculos afetivos após serem dispersas por abrigos e reassentamentos.",
+          "href": "https://www.youtube.com/watch?v=V0mpK7nNmwY"
+        },
+        {
+          "mention": "BBC Brasil – reportagem especial “Desastre de Mariana: histórias de vida soterradas pela lama”",
+          "content": "Relata casos de moradores que não conseguiram reconstruir a mesma rede de vizinhos e amigos, reforçando o conceito de fragilização dos laços comunitários.",
+          "href": "https://www.bbc.com/portuguese/brasil-45752397"
+        }
+      ],
+      "indexable": true,
+      "active": true,
+      "embedding_status": "pending",
+      "source_type": "official_questions"
+    }
+  ]
+}

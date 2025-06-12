@@ -1,0 +1,15 @@
+# Created by .ignore support plugin (hsz.mobi)
+tmp
+venv
+*.pyc
+staticfiles
+.env
+../.idea/
+.sqlite3
+.idea/
+/.idea/
+.log
+*.log
+qdrant_storage/
+*/qdrant_storage/
+db.sqlite3
