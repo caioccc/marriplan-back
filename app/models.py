@@ -151,7 +151,7 @@ class UserWeddingProfile(AbstractTimeStamped):
     fotos_diversas = models.JSONField(default=list, blank=True)
 
     # História do casal
-    historia = models.CharField(max_length=400, blank=True)
+    historia = models.TextField(blank=True)
 
     # Padrinhos: lista de dicts {nome_casal, foto_casal}
     padrinhos = models.JSONField(default=list, blank=True)
