@@ -6,7 +6,8 @@ from app.viewsets import NotificationViewSet, GoogleLoginView
 from app.viewsets import SignUpAPI, SignInAPI, MainUser, UserSessionViewSet, ChatMessageViewSet, UserViewSet, \
     ConfirmEmailAPI, ResendConfirmationEmailAPI, ResetPasswordRequestAPI, ResetPasswordConfirmAPI, delete_all_messages, \
     UserSettingsAPI, delete_all_sessions, generate_2fa_qr, enable_2fa, disable_2fa, PreLoginAPI
-from .viewsets import UserWeddingProfileViewSet, WeddingSiteViewSet, WeddingSiteHistoryViewSet, public_wedding_site
+from .viewsets import UserWeddingProfileViewSet, WeddingSiteViewSet, WeddingSiteHistoryViewSet, public_wedding_site, \
+    upload_cloudinary, delete_cloudinary_image
 
 router = DefaultRouter()
 router.register(r'wedding-profile', UserWeddingProfileViewSet, basename='wedding-profile')
@@ -94,6 +95,9 @@ urlpatterns += [
          name='notification-delete-all'),
 
     path('site/<slug:slug>/', public_wedding_site, name='public-wedding-site'),
+
+    path('upload-cloudinary/', upload_cloudinary, name='upload-cloudinary'),
+    path('delete-cloudinary-image/', delete_cloudinary_image, name='delete-cloudinary-image'),
 
     path('', include(router.urls)),
 ]

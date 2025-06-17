@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from app.models import CustomUser, UserSession, ChatMessage, UserSettings, Notification, UserWeddingProfile, WeddingSite, WeddingSiteHistory
+from app.models import CustomUser, UserSession, ChatMessage, UserSettings, Notification, UserWeddingProfile, WeddingSite, WeddingSiteHistory, WeddingImage
 
 
 class UserSettingsAdmin(admin.ModelAdmin):
@@ -32,10 +32,14 @@ class UserWeddingProfileAdmin(admin.ModelAdmin):
 
 
 class WeddingSiteAdmin(admin.ModelAdmin):
-    list_display = ('user', 'template', 'status', 'palette', 'font', 'visits', 'rsvp_count', 'rsvp_conversion', 'last_visitor', 'last_visitor_at', 'created_at',)
-    search_fields = ('user__username', 'template', 'status',)
-    list_filter = ('template', 'status', 'palette', 'font',)
-    ordering = ('-created_at',)
+    list_display = ('id', 'user', 'template', 'cover_photo', 'get_gallery_count')
+    search_fields = ('user__username', 'template')
+    filter_horizontal = ('gallery',)
+    def get_gallery_count(self, obj):
+        return obj.gallery.count()
+    get_gallery_count.short_description = 'Qtd. Imagens Galeria'
+
+
 
 class WeddingSiteHistoryAdmin(admin.ModelAdmin):
     list_display = ('site', 'action', 'performed_by', 'created_at',)
@@ -79,6 +83,12 @@ class NotificationAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
 
 
+class WeddingImageAdmin(admin.ModelAdmin):
+    list_display = ('id', 'url', 'id_cloudinary', 'folder', 'in_use', 'uploaded_at')
+    list_filter = ('in_use', 'folder', 'uploaded_at')
+    search_fields = ('url', 'id_cloudinary', 'folder')
+
+
 # Registre os outros modelos normalmente
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(UserSession, UserSessionAdmin)
@@ -88,3 +98,4 @@ admin.site.register(Notification, NotificationAdmin)
 admin.site.register(UserWeddingProfile, UserWeddingProfileAdmin)
 admin.site.register(WeddingSite, WeddingSiteAdmin)
 admin.site.register(WeddingSiteHistory, WeddingSiteHistoryAdmin)
+admin.site.register(WeddingImage, WeddingImageAdmin)

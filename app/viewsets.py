@@ -14,14 +14,15 @@ from app.core.renderers import EventStreamRenderer
 from app.core.services import QuestionService, SearchService
 from app.core.services.search import SearchFilters
 from app.models import (ChatMessage, Notification, UserSession, UserSettings,
-                        UserWeddingProfile, WeddingSite, WeddingSiteHistory)
+                        UserWeddingProfile, WeddingSite, WeddingSiteHistory,
+                        WeddingImage)
 from app.serializers import (ChatMessageSerializer, LoginSerializer,
                              NotificationSerializer, PreLoginSerializer,
                              RegisterSerializer, UserSerializer,
                              UserSessionSerializer, UserSettingsSerializer,
                              UserWeddingProfileSerializer,
                              WeddingSiteHistorySerializer,
-                             WeddingSiteSerializer)
+                             WeddingSiteSerializer, WeddingImageSerializer)
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
@@ -33,11 +34,23 @@ from google.oauth2 import id_token
 from knox.auth import TokenAuthentication
 from knox.models import AuthToken
 from rest_framework import generics, permissions, serializers, status, viewsets
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import action, api_view, permission_classes, parser_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
+import cloudinary
+import cloudinary.uploader
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+
+
+# Configure Cloudinary (pode ser feito no settings.py)
+cloudinary.config(
+    cloud_name='freelancerinc',
+    api_key='977733565746842',
+    api_secret='q552mjrVeEmgPs1kUxfKzp4wz2o',
+)
 
 
 @api_view(['delete'])
@@ -932,37 +945,23 @@ class WeddingSiteViewSet(viewsets.ModelViewSet):
         if not site:
             return Response({'detail': 'Nenhum site encontrado para este usuário.'}, status=404)
         # Retorna todos os campos relevantes do modelo
-        return Response({
-            'template': site.template,
-            'palette': site.palette,
-            'font': site.font,
-            'cover_photo': site.cover_photo,
-            'groom_name': site.groom_name,
-            'bride_name': site.bride_name,
-            'wedding_date': site.wedding_date,
-            'local': site.local,
-            'about_us': site.about_us,
-            'rsvp_text': site.rsvp_text,
-            'address': site.address,
-            'gallery': site.gallery,
-            'countdown': site.countdown,
-            'map': site.map,
-            'social': site.social,
-        })
+        return Response(WeddingSiteSerializer(site).data)
 
     def update(self, request, *args, **kwargs):
         # Atualiza o WeddingSite do usuário autenticado
         instance = self.get_object()
         if not instance:
             return Response({'detail': 'Nenhum site encontrado para este usuário.'}, status=404)
-        # Remove campos que não devem ser obrigatórios no update
         data = request.data.copy()
         data['url_slug'] = instance.url_slug  # Mantém o slug existente
         data['user'] = instance.user.id
+        # Atualiza galeria se vier IDs
+        gallery_ids = data.pop('gallery', None)
         serializer = self.get_serializer(instance, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        # Histórico de edição
+        if gallery_ids is not None:
+            instance.gallery.set(gallery_ids)
         WeddingSiteHistory.objects.create(site=instance, action='edit', performed_by=request.user, snapshot=WeddingSiteSerializer(instance).data)
         return Response(serializer.data)
 
@@ -993,3 +992,49 @@ def public_wedding_site(request, slug):
         import logging
         logging.exception(f"Erro ao acessar site público: {slug}")
         return Response({'detail': 'Site não encontrado ou indisponível.'}, status=404)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def upload_cloudinary(request):
+    file = request.FILES.get('file')
+    folder = request.data.get('folder', 'wedding-site')
+    if not file:
+        return Response({'error': 'Arquivo não enviado.'}, status=status.HTTP_400_BAD_REQUEST)
+    if file.size > 10 * 1024 * 1024:
+        return Response({'error': 'A imagem deve ter no máximo 10MB.'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        result = cloudinary.uploader.upload(
+            file,
+            folder=folder,
+            resource_type='image',
+            overwrite=True,
+            transformation=[{'width': 1200, 'height': 600, 'crop': 'limit'}] if folder == 'wedding-hero' else [{'width': 600, 'height': 400, 'crop': 'limit'}]
+        )
+        # Cria WeddingImage
+        image = WeddingImage.objects.create(
+            url=result['secure_url'],
+            id_cloudinary=result['public_id'],
+            folder=folder,
+            in_use=True
+        )
+        return Response(WeddingImageSerializer(image).data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def delete_cloudinary_image(request):
+    public_id = request.data.get('public_id')
+    if not public_id:
+        return Response({'error': 'public_id é obrigatório.'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        result = cloudinary.uploader.destroy(public_id)
+        if result.get('result') == 'ok':
+            WeddingImage.objects.filter(id_cloudinary=public_id).delete()
+            return Response({'status': 'deleted'})
+        return Response({'error': 'Erro ao deletar imagem no Cloudinary.'}, status=500)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)

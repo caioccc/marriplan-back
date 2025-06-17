@@ -127,3 +127,4 @@ dependencies:
       - qdrant-client
       - sentence-transformers
       - google-auth
+      - cloudinary

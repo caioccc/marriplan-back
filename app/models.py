@@ -160,6 +160,17 @@ class UserWeddingProfile(AbstractTimeStamped):
         return f"Perfil de casamento de {self.user.username}"
 
 
+class WeddingImage(models.Model):
+    url = models.URLField()
+    id_cloudinary = models.CharField(max_length=255)
+    folder = models.CharField(max_length=100, blank=True)
+    in_use = models.BooleanField(default=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.folder or ''} - {self.id_cloudinary}"
+
+
 class WeddingSite(AbstractTimeStamped):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wedding_site')
     status = models.CharField(max_length=20, choices=[('draft', 'Rascunho'), ('published', 'Publicado'), ('inactive', 'Inativo')], default='draft')
@@ -180,8 +191,8 @@ class WeddingSite(AbstractTimeStamped):
     postalcode = models.CharField(max_length=20, blank=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
-    gallery = models.JSONField(default=list, blank=True)
-    cover_photo = models.URLField(blank=True, null=True)
+    cover_photo = models.ForeignKey('WeddingImage', null=True, blank=True, on_delete=models.SET_NULL, related_name='cover_for_sites')
+    gallery = models.ManyToManyField('WeddingImage', blank=True, related_name='gallery_for_sites')
     palette = models.CharField(max_length=50, blank=True)
     font = models.CharField(max_length=50, blank=True)
     countdown = models.BooleanField(default=True)

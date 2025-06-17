@@ -3,7 +3,7 @@ import string
 
 from app.models import (ChatMessage, CustomUser, Notification, UserSession,
                         UserSettings, UserWeddingProfile, WeddingSite,
-                        WeddingSiteHistory)
+                        WeddingSiteHistory, WeddingImage)
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.text import slugify
 from rest_framework import serializers
@@ -153,7 +153,16 @@ class UserWeddingProfileSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class WeddingImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WeddingImage
+        fields = ['id', 'url', 'id_cloudinary', 'folder', 'in_use', 'uploaded_at']
+
+
 class WeddingSiteSerializer(serializers.ModelSerializer):
+    cover_photo = WeddingImageSerializer(read_only=True)
+    gallery = WeddingImageSerializer(many=True, read_only=True)
+
     class Meta:
         model = WeddingSite
         fields = '__all__'
@@ -161,6 +170,7 @@ class WeddingSiteSerializer(serializers.ModelSerializer):
             'user': {'required': False},
             'url_slug': {'required': False},
         }
+
 
 class WeddingSiteHistorySerializer(serializers.ModelSerializer):
     class Meta:
