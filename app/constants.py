@@ -43,3 +43,18 @@ RESET_PASSWORD_EMAIL_TEMPLATE = """
   </body>
 </html>
 """
+
+EMAIL_WEDDING_SITE_CREATE_SUBJECT = '🎉 Seu site de casamento foi criado!'
+EMAIL_WEDDING_SITE_CREATE_BODY = (
+    'Olá,\n\n'
+    'Seu site de casamento foi criado com sucesso na plataforma MarriPlan!\n'
+    'Acesse seu painel para personalizar e compartilhar com seus convidados.\n\n'
+    'Com carinho,\nEquipe MarriPlan'
+)
+EMAIL_WEDDING_SITE_UPDATE_SUBJECT = '💍 Seu site de casamento foi atualizado!'
+EMAIL_WEDDING_SITE_UPDATE_BODY = (
+    'Olá,\n\n'
+    'As informações do seu site de casamento foram atualizadas.\n'
+    'Confira as novidades acessando seu painel.\n\n'
+    'Com carinho,\nEquipe MarriPlan'
+)

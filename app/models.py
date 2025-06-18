@@ -211,11 +211,24 @@ class WeddingSite(AbstractTimeStamped):
 
 
 class WeddingSiteHistory(AbstractTimeStamped):
+    ACTION_CHOICES = [
+        ('create', 'Criação'),
+        ('edit', 'Edição'),
+        ('publish', 'Publicação'),
+        ('unpublish', 'Despublicação'),
+        ('delete', 'Exclusão'),
+    ]
     site = models.ForeignKey(WeddingSite, on_delete=models.CASCADE, related_name='history')
-    action = models.CharField(max_length=50)  # edit, publish, unpublish, etc
-    description = models.TextField(blank=True)
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
     performed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
-    snapshot = models.JSONField(default=dict, blank=True)
+    description = models.TextField(blank=True)
+    snapshot = models.JSONField()
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def get_action_display(self):
+        return dict(self.ACTION_CHOICES).get(self.action, 'Desconhecido')
 
     def __str__(self):
-        return f"Histórico {self.action} - {self.site.user.username}"
+        return f"{self.site} - {self.get_action_display()} em {self.created_at:%d/%m/%Y %H:%M}"

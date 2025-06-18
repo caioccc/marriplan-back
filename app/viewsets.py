@@ -2,12 +2,13 @@ import base64
 import io
 import secrets
 import uuid
+from datetime import timedelta
 from http.client import CREATED
 
 import pyotp
 import qrcode
 from app.constants import (EMAIL_CONFIRMATION_HTML_TEMPLATE,
-                           RESET_PASSWORD_EMAIL_TEMPLATE)
+                           RESET_PASSWORD_EMAIL_TEMPLATE, EMAIL_WEDDING_SITE_CREATE_SUBJECT, EMAIL_WEDDING_SITE_CREATE_BODY, EMAIL_WEDDING_SITE_UPDATE_SUBJECT, EMAIL_WEDDING_SITE_UPDATE_BODY)
 from app.core.models.llm.chat import (ChatRequest, generate_streaming_response,
                                       prepare_chat_messages)
 from app.core.renderers import EventStreamRenderer
@@ -33,7 +34,7 @@ from google.auth.transport import requests
 from google.oauth2 import id_token
 from knox.auth import TokenAuthentication
 from knox.models import AuthToken
-from rest_framework import generics, permissions, serializers, status, viewsets
+from rest_framework import generics, permissions, serializers, status, viewsets, filters
 from rest_framework.decorators import action, api_view, permission_classes, parser_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
@@ -852,6 +853,23 @@ class UserWeddingProfileViewSet(viewsets.ModelViewSet):
         serializer.save()
         return Response(serializer.data)
 
+
+def notify_user_wedding_site(user, action):
+    if action == 'create':
+        subject = EMAIL_WEDDING_SITE_CREATE_SUBJECT
+        message = EMAIL_WEDDING_SITE_CREATE_BODY
+    else:
+        subject = EMAIL_WEDDING_SITE_UPDATE_SUBJECT
+        message = EMAIL_WEDDING_SITE_UPDATE_BODY
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        fail_silently=True,
+    )
+
+
 class WeddingSiteViewSet(viewsets.ModelViewSet):
     serializer_class = WeddingSiteSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -903,6 +921,7 @@ class WeddingSiteViewSet(viewsets.ModelViewSet):
         site = WeddingSite.objects.get(pk=serializer.instance.pk)
 
         WeddingSiteHistory.objects.create(site=site, action='create', performed_by=user, snapshot=WeddingSiteSerializer(site).data)
+        notify_user_wedding_site(request.user, 'create')
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['post'])
@@ -963,14 +982,34 @@ class WeddingSiteViewSet(viewsets.ModelViewSet):
         if gallery_ids is not None:
             instance.gallery.set(gallery_ids)
         WeddingSiteHistory.objects.create(site=instance, action='edit', performed_by=request.user, snapshot=WeddingSiteSerializer(instance).data)
+        notify_user_wedding_site(request.user, 'update')
         return Response(serializer.data)
+
 
 class WeddingSiteHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = WeddingSiteHistorySerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['description', 'action']
+    ordering = ['-created_at']
 
     def get_queryset(self):
-        return WeddingSiteHistory.objects.filter(site__user=self.request.user).order_by('-created_at')
+        user = self.request.user
+        queryset = WeddingSiteHistory.objects.filter(site__user=user)
+        # Filtros por período
+        period = self.request.query_params.get('period')
+        if period == 'today':
+            queryset = queryset.filter(created_at__date=timezone.now().date())
+        elif period == '7d':
+            queryset = queryset.filter(created_at__gte=timezone.now() - timedelta(days=7))
+        elif period == '30d':
+            queryset = queryset.filter(created_at__gte=timezone.now() - timedelta(days=30))
+        elif period == 'custom':
+            start = self.request.query_params.get('start')
+            end = self.request.query_params.get('end')
+            if start and end:
+                queryset = queryset.filter(created_at__date__gte=start, created_at__date__lte=end)
+        return queryset
 
 
 @api_view(['GET'])

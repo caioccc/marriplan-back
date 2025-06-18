@@ -173,6 +173,8 @@ class WeddingSiteSerializer(serializers.ModelSerializer):
 
 
 class WeddingSiteHistorySerializer(serializers.ModelSerializer):
+    action_display = serializers.CharField(source='get_action_display', read_only=True)
+    performed_by_username = serializers.CharField(source='performed_by.username', read_only=True)
     class Meta:
         model = WeddingSiteHistory
-        fields = '__all__'
+        fields = ['id', 'site', 'action', 'action_display', 'performed_by', 'performed_by_username', 'description', 'snapshot', 'created_at']

@@ -42,10 +42,10 @@ class WeddingSiteAdmin(admin.ModelAdmin):
 
 
 class WeddingSiteHistoryAdmin(admin.ModelAdmin):
-    list_display = ('site', 'action', 'performed_by', 'created_at',)
-    search_fields = ('site__user__username', 'action', 'performed_by__username')
-    list_filter = ('action', 'performed_by')
-    ordering = ('-created_at',)
+    list_display = ('id', 'site', 'action', 'performed_by', 'created_at', 'description')
+    list_filter = ('action', 'created_at', 'performed_by')
+    search_fields = ('site__id', 'description', 'performed_by__username')
+    date_hierarchy = 'created_at'
 
 
 class UserWeddingProfileInline(admin.StackedInline):
