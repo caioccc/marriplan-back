@@ -232,3 +232,62 @@ class WeddingSiteHistory(AbstractTimeStamped):
 
     def __str__(self):
         return f"{self.site} - {self.get_action_display()} em {self.created_at:%d/%m/%Y %H:%M}"
+
+
+class ChecklistTask(models.Model):
+    PRIORITY_CHOICES = [
+        ('high', 'Alta'),
+        ('medium', 'Média'),
+        ('low', 'Baixa'),
+    ]
+    STATUS_CHOICES = [
+        ('pending', 'Pendente'),
+        ('in_progress', 'Em Andamento'),
+        ('done', 'Concluído'),
+    ]
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='checklist_tasks')
+    month = models.PositiveSmallIntegerField()  # 1 a 12
+    description = models.CharField(max_length=255)
+    start_date = models.DateField()
+    due_date = models.DateField()
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pending')
+    is_template = models.BooleanField(default=False)  # True para tarefas pré-cadastradas
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    days_before_event = models.IntegerField(null=True, blank=True, help_text="Dias antes do evento para agrupar no frontend")
+
+    def get_status_display(self):
+        return dict(self.STATUS_CHOICES).get(self.status, 'Desconhecido')
+
+    def __str__(self):
+        return f"Tarefa de Checklist {self.description} - {self.get_status_display()}"
+
+
+class ChecklistTaskAttachment(models.Model):
+    task = models.ForeignKey(ChecklistTask, on_delete=models.CASCADE, related_name='attachments')
+    file = models.FileField(upload_to='checklist_attachments/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Anexo de Tarefa {self.task.description} - {self.file.name}"
+
+
+class ChecklistTaskShare(models.Model):
+    task = models.ForeignKey(ChecklistTask, on_delete=models.CASCADE, related_name='shares')
+    email = models.EmailField()
+    shared_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Tarefa {self.task.description} compartilhada com {self.email}"
+
+
+class ChecklistTaskNotification(models.Model):
+    task = models.ForeignKey(ChecklistTask, on_delete=models.CASCADE, related_name='notifications')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    scheduled_for = models.DateTimeField()
+    sent = models.BooleanField(default=False)
+    sent_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Notificação de Tarefa {self.task.description} para {self.user.username}"

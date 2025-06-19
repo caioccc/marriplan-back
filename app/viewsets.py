@@ -5,25 +5,10 @@ import uuid
 from datetime import timedelta
 from http.client import CREATED
 
+import cloudinary
+import cloudinary.uploader
 import pyotp
 import qrcode
-from app.constants import (EMAIL_CONFIRMATION_HTML_TEMPLATE,
-                           RESET_PASSWORD_EMAIL_TEMPLATE, EMAIL_WEDDING_SITE_CREATE_SUBJECT, EMAIL_WEDDING_SITE_CREATE_BODY, EMAIL_WEDDING_SITE_UPDATE_SUBJECT, EMAIL_WEDDING_SITE_UPDATE_BODY)
-from app.core.models.llm.chat import (ChatRequest, generate_streaming_response,
-                                      prepare_chat_messages)
-from app.core.renderers import EventStreamRenderer
-from app.core.services import QuestionService, SearchService
-from app.core.services.search import SearchFilters
-from app.models import (ChatMessage, Notification, UserSession, UserSettings,
-                        UserWeddingProfile, WeddingSite, WeddingSiteHistory,
-                        WeddingImage)
-from app.serializers import (ChatMessageSerializer, LoginSerializer,
-                             NotificationSerializer, PreLoginSerializer,
-                             RegisterSerializer, UserSerializer,
-                             UserSessionSerializer, UserSettingsSerializer,
-                             UserWeddingProfileSerializer,
-                             WeddingSiteHistorySerializer,
-                             WeddingSiteSerializer, WeddingImageSerializer)
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
@@ -37,14 +22,30 @@ from knox.models import AuthToken
 from rest_framework import generics, permissions, serializers, status, viewsets, filters
 from rest_framework.decorators import action, api_view, permission_classes, parser_classes
 from rest_framework.parsers import JSONParser
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
-import cloudinary
-import cloudinary.uploader
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticated
 
+from app.constants import (EMAIL_CONFIRMATION_HTML_TEMPLATE,
+                           RESET_PASSWORD_EMAIL_TEMPLATE, EMAIL_WEDDING_SITE_CREATE_SUBJECT,
+                           EMAIL_WEDDING_SITE_CREATE_BODY, EMAIL_WEDDING_SITE_UPDATE_SUBJECT,
+                           EMAIL_WEDDING_SITE_UPDATE_BODY)
+from app.core.models.llm.chat import (ChatRequest, generate_streaming_response,
+                                      prepare_chat_messages)
+from app.core.renderers import EventStreamRenderer
+from app.models import (ChatMessage, Notification, UserSession, UserSettings,
+                        UserWeddingProfile, WeddingSite, WeddingSiteHistory,
+                        WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare)
+from app.serializers import (ChatMessageSerializer, LoginSerializer,
+                             NotificationSerializer, PreLoginSerializer,
+                             RegisterSerializer, UserSerializer,
+                             UserSessionSerializer, UserSettingsSerializer,
+                             UserWeddingProfileSerializer,
+                             WeddingSiteHistorySerializer,
+                             WeddingSiteSerializer, WeddingImageSerializer,
+                             ChecklistTaskSerializer, ChecklistTaskAttachmentSerializer, ChecklistTaskShareSerializer)
 
 # Configure Cloudinary (pode ser feito no settings.py)
 cloudinary.config(
@@ -1077,3 +1078,35 @@ def delete_cloudinary_image(request):
         return Response({'error': 'Erro ao deletar imagem no Cloudinary.'}, status=500)
     except Exception as e:
         return Response({'error': str(e)}, status=500)
+
+
+class ChecklistTaskViewSet(viewsets.ModelViewSet):
+    serializer_class = ChecklistTaskSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+    def get_queryset(self):
+        return ChecklistTask.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+class ChecklistTaskAttachmentViewSet(viewsets.ModelViewSet):
+    serializer_class = ChecklistTaskAttachmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return ChecklistTaskAttachment.objects.filter(task__user=self.request.user)
+
+
+class ChecklistTaskShareViewSet(viewsets.ModelViewSet):
+    serializer_class = ChecklistTaskShareSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return ChecklistTaskShare.objects.filter(task__user=self.request.user)

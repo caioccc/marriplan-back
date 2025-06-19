@@ -25,12 +25,12 @@ class AppConfig(AppConfig):
         from django.conf import settings
 
         # Só executa ETL se não estiver em modo de migração
-        if 'migrate' not in sys.argv and 'makemigrations' not in sys.argv:
-            # Executa ETL em thread separada para não bloquear startup
-            if getattr(settings, 'RUN_ETL_ON_STARTUP', True):
-                thread = threading.Thread(target=self.run_etl_pipeline)
-                thread.daemon = True
-                thread.start()
+        # if 'migrate' not in sys.argv and 'makemigrations' not in sys.argv:
+        #     # Executa ETL em thread separada para não bloquear startup
+        #     if getattr(settings, 'RUN_ETL_ON_STARTUP', True):
+        #         thread = threading.Thread(target=self.run_etl_pipeline)
+        #         thread.daemon = True
+        #         thread.start()
 
         # Configuração global de logs
         logging.basicConfig(
@@ -39,13 +39,16 @@ class AppConfig(AppConfig):
         )
 
         # Check if the ollama tool and LLM core are ready to use
-        check_ollama()
-
-        # Load models
-        init_models()
+        # check_ollama()
+        #
+        # # Load models
+        # init_models()
 
         # Importa utils para garantir que o patch do httpx seja aplicado
         import app.core.models.utils  # noqa: F401
+
+        # Importa signals para garantir execução dos handlers
+        import app.signals  # noqa: F401
 
     def run_etl_pipeline(self):
         """Executa pipeline ETL em background"""

@@ -3,7 +3,7 @@ import string
 
 from app.models import (ChatMessage, CustomUser, Notification, UserSession,
                         UserSettings, UserWeddingProfile, WeddingSite,
-                        WeddingSiteHistory, WeddingImage)
+                        WeddingSiteHistory, WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare)
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.text import slugify
 from rest_framework import serializers
@@ -178,3 +178,28 @@ class WeddingSiteHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = WeddingSiteHistory
         fields = ['id', 'site', 'action', 'action_display', 'performed_by', 'performed_by_username', 'description', 'snapshot', 'created_at']
+
+
+class ChecklistTaskAttachmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChecklistTaskAttachment
+        fields = ['id', 'file', 'uploaded_at']
+
+
+class ChecklistTaskSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    days_before_event = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = ChecklistTask
+        fields = [
+            'id', 'user', 'month', 'description', 'start_date', 'due_date',
+            'priority', 'status', 'is_template', 'attachments', 'created_at', 'updated_at', 'days_before_event'
+        ]
+        read_only_fields = ['user', 'created_at', 'updated_at', 'attachments', 'days_before_event']
+
+
+class ChecklistTaskShareSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChecklistTaskShare
+        fields = ['id', 'task', 'email', 'shared_at']

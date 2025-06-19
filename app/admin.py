@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from app.models import CustomUser, UserSession, ChatMessage, UserSettings, Notification, UserWeddingProfile, WeddingSite, WeddingSiteHistory, WeddingImage
+from .models import ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, ChecklistTaskNotification
 
 
 class UserSettingsAdmin(admin.ModelAdmin):
@@ -87,6 +88,25 @@ class WeddingImageAdmin(admin.ModelAdmin):
     list_display = ('id', 'url', 'id_cloudinary', 'folder', 'in_use', 'uploaded_at')
     list_filter = ('in_use', 'folder', 'uploaded_at')
     search_fields = ('url', 'id_cloudinary', 'folder')
+
+
+@admin.register(ChecklistTask)
+class ChecklistTaskAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'month', 'description', 'priority', 'status', 'due_date', 'is_template')
+    list_filter = ('month', 'priority', 'status', 'is_template')
+    search_fields = ('description', 'user__username')
+
+@admin.register(ChecklistTaskAttachment)
+class ChecklistTaskAttachmentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'task', 'file', 'uploaded_at')
+
+@admin.register(ChecklistTaskShare)
+class ChecklistTaskShareAdmin(admin.ModelAdmin):
+    list_display = ('id', 'task', 'email', 'shared_at')
+
+@admin.register(ChecklistTaskNotification)
+class ChecklistTaskNotificationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'task', 'user', 'scheduled_for', 'sent', 'sent_at')
 
 
 # Registre os outros modelos normalmente

@@ -8,11 +8,15 @@ from app.viewsets import SignUpAPI, SignInAPI, MainUser, UserSessionViewSet, Cha
     UserSettingsAPI, delete_all_sessions, generate_2fa_qr, enable_2fa, disable_2fa, PreLoginAPI
 from .viewsets import UserWeddingProfileViewSet, WeddingSiteViewSet, WeddingSiteHistoryViewSet, public_wedding_site, \
     upload_cloudinary, delete_cloudinary_image
+from .viewsets import ChecklistTaskViewSet, ChecklistTaskAttachmentViewSet, ChecklistTaskShareViewSet
 
 router = DefaultRouter()
 router.register(r'wedding-profile', UserWeddingProfileViewSet, basename='wedding-profile')
 router.register(r'wedding-site', WeddingSiteViewSet, basename='wedding-site')
 router.register(r'wedding-site-history', WeddingSiteHistoryViewSet, basename='wedding-site-history')
+router.register(r'checklist-tasks', ChecklistTaskViewSet, basename='checklisttask')
+router.register(r'checklist-attachments', ChecklistTaskAttachmentViewSet, basename='checklisttaskattachment')
+router.register(r'checklist-shares', ChecklistTaskShareViewSet, basename='checklisttaskshare')
 
 urlpatterns = []
 
