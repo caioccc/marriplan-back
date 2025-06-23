@@ -123,10 +123,10 @@ class ResetPasswordRequestAPI(APIView):
             user.reset_password_expiry = timezone.now() + timezone.timedelta(hours=1)
             user.save()
             reset_link = f"{settings.FRONTEND_URL}/reset-password/{token}"
-            subject = "Redefinição de senha - Marriplan"
+            subject = "🔑 Redefinição de senha - Marriplan"
             plain_message = f"Redefina sua senha: {reset_link}"
             html_message = RESET_PASSWORD_EMAIL_TEMPLATE.format(
-                username=user.username,
+                email=user.email,
                 reset_link=reset_link
             )
             send_mail(
@@ -195,10 +195,10 @@ def send_mail_confirmation_email(user):
     user.email_confirmation_expiry = timezone.now() + timezone.timedelta(hours=24)
     user.save()
     confirmation_link = f"{settings.FRONTEND_URL}/register/confirm-email/?token={token}"
-    subject = "Bem-vindo! Confirme seu e-mail para ativar sua conta"
+    subject = "📧 Bem-vindo! Confirme seu e-mail para ativar sua conta"
     plain_message = f"Clique no link para confirmar: {confirmation_link}"
     html_message = EMAIL_CONFIRMATION_HTML_TEMPLATE.format(
-        username=user.username,
+        email=user.email,
         confirmation_link=confirmation_link
     )
     send_mail(
