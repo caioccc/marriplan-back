@@ -291,3 +291,17 @@ class ChecklistTaskNotification(models.Model):
 
     def __str__(self):
         return f"Notificação de Tarefa {self.task.description} para {self.user.username}"
+
+
+class Guest(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='guests')
+    wedding_profile = models.ForeignKey('UserWeddingProfile', on_delete=models.CASCADE, related_name='guests')
+    name = models.CharField(max_length=120)
+    phone = models.CharField(max_length=20)
+    whatsapp = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name

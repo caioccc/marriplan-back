@@ -3,7 +3,7 @@ import string
 
 from app.models import (ChatMessage, CustomUser, Notification, UserSession,
                         UserSettings, UserWeddingProfile, WeddingSite,
-                        WeddingSiteHistory, WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare)
+                        WeddingSiteHistory, WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest)
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.text import slugify
 from rest_framework import serializers
@@ -203,3 +203,10 @@ class ChecklistTaskShareSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChecklistTaskShare
         fields = ['id', 'task', 'email', 'shared_at']
+
+
+class GuestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Guest
+        fields = ['id', 'name', 'phone', 'whatsapp', 'email', 'user', 'wedding_profile', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'wedding_profile', 'created_at', 'updated_at']

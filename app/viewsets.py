@@ -37,7 +37,7 @@ from app.core.models.llm.chat import (ChatRequest, generate_streaming_response,
 from app.core.renderers import EventStreamRenderer
 from app.models import (ChatMessage, Notification, UserSession, UserSettings,
                         UserWeddingProfile, WeddingSite, WeddingSiteHistory,
-                        WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare)
+                        WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest)
 from app.serializers import (ChatMessageSerializer, LoginSerializer,
                              NotificationSerializer, PreLoginSerializer,
                              RegisterSerializer, UserSerializer,
@@ -45,7 +45,8 @@ from app.serializers import (ChatMessageSerializer, LoginSerializer,
                              UserWeddingProfileSerializer,
                              WeddingSiteHistorySerializer,
                              WeddingSiteSerializer, WeddingImageSerializer,
-                             ChecklistTaskSerializer, ChecklistTaskAttachmentSerializer, ChecklistTaskShareSerializer)
+                             ChecklistTaskSerializer, ChecklistTaskAttachmentSerializer, ChecklistTaskShareSerializer,
+                             GuestSerializer)
 
 # Configure Cloudinary (pode ser feito no settings.py)
 cloudinary.config(
@@ -1110,3 +1111,27 @@ class ChecklistTaskShareViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return ChecklistTaskShare.objects.filter(task__user=self.request.user)
+
+
+class GuestViewSet(viewsets.ModelViewSet):
+    serializer_class = GuestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        # Se for noivo(a) ou convidado, vê todos os convidados do casamento vinculado ao wedding_profile
+        if hasattr(user, 'wedding_profile'):
+            return Guest.objects.filter(wedding_profile=user.wedding_profile).order_by('-created_at')
+        # Se for convidado (sem wedding_profile), mas está cadastrado como Guest, buscar o wedding_profile pelo Guest
+        guest = Guest.objects.filter(user=user).first()
+        if guest and guest.wedding_profile:
+            return Guest.objects.filter(wedding_profile=guest.wedding_profile).order_by('-created_at')
+        # Caso não tenha vínculo, retorna apenas o próprio cadastro
+        return Guest.objects.filter(user=user).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if hasattr(user, 'wedding_profile'):
+            serializer.save(user=user, wedding_profile=user.wedding_profile)
+        else:
+            serializer.save(user=user)

@@ -9,6 +9,7 @@ from app.viewsets import SignUpAPI, SignInAPI, MainUser, UserSessionViewSet, Cha
 from .viewsets import UserWeddingProfileViewSet, WeddingSiteViewSet, WeddingSiteHistoryViewSet, public_wedding_site, \
     upload_cloudinary, delete_cloudinary_image
 from .viewsets import ChecklistTaskViewSet, ChecklistTaskAttachmentViewSet, ChecklistTaskShareViewSet
+from .viewsets import GuestViewSet
 
 router = DefaultRouter()
 router.register(r'wedding-profile', UserWeddingProfileViewSet, basename='wedding-profile')
@@ -17,6 +18,7 @@ router.register(r'wedding-site-history', WeddingSiteHistoryViewSet, basename='we
 router.register(r'checklist-tasks', ChecklistTaskViewSet, basename='checklisttask')
 router.register(r'checklist-attachments', ChecklistTaskAttachmentViewSet, basename='checklisttaskattachment')
 router.register(r'checklist-shares', ChecklistTaskShareViewSet, basename='checklisttaskshare')
+router.register(r'guests', GuestViewSet, basename='guest')
 
 urlpatterns = []
 

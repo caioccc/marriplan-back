@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from app.models import CustomUser, UserSession, ChatMessage, UserSettings, Notification, UserWeddingProfile, WeddingSite, WeddingSiteHistory, WeddingImage
-from .models import ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, ChecklistTaskNotification
+from .models import ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, ChecklistTaskNotification, Guest
 
 
 class UserSettingsAdmin(admin.ModelAdmin):
@@ -107,6 +107,14 @@ class ChecklistTaskShareAdmin(admin.ModelAdmin):
 @admin.register(ChecklistTaskNotification)
 class ChecklistTaskNotificationAdmin(admin.ModelAdmin):
     list_display = ('id', 'task', 'user', 'scheduled_for', 'sent', 'sent_at')
+
+
+@admin.register(Guest)
+class GuestAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'phone', 'whatsapp', 'email', 'user', 'wedding_profile', 'created_at', 'updated_at')
+    search_fields = ('name', 'phone', 'whatsapp', 'email', 'user__username', 'wedding_profile__user__username')
+    list_filter = ()
+    ordering = ('-created_at',)
 
 
 # Registre os outros modelos normalmente
