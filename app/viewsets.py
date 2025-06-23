@@ -47,6 +47,7 @@ from app.serializers import (ChatMessageSerializer, LoginSerializer,
                              WeddingSiteSerializer, WeddingImageSerializer,
                              ChecklistTaskSerializer, ChecklistTaskAttachmentSerializer, ChecklistTaskShareSerializer,
                              GuestSerializer)
+from app.utils import check_and_send_checklist_reminders
 
 # Configure Cloudinary (pode ser feito no settings.py)
 cloudinary.config(
@@ -271,6 +272,7 @@ def initialize_user_chat(user):
                 "- \"Como criar um formulário de RSVP eficaz?\""
             )
         )
+    check_and_send_checklist_reminders(user)
     if not user.settings:
         user.settings = UserSettings.objects.create()
         user.save()

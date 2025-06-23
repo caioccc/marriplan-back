@@ -74,3 +74,18 @@ EMAIL_WEDDING_SITE_UPDATE_BODY = """
   </body>
 </html>
 """
+CHECKLIST_TASK_REMINDER_EMAIL_TEMPLATE = """
+<html>
+  <body style="font-family: Arial, sans-serif; color: #333;">
+    <div style="max-width: 480px; margin: auto; border: 1px solid #eee; border-radius: 8px; padding: 24px;">
+      <h2 style="color: #2d8cff;">⏰ Lembrete de tarefa do checklist</h2>
+      <p>Olá <b>{email}</b>,</p>
+      <p>Você tem uma tarefa do checklist com vencimento em 3 dias:</p>
+      <p><b>{description}</b></p>
+      <p>Não se esqueça de concluir a tarefa até <b>{due_date}</b>!</p>
+      <hr>
+      <p style="font-size: 14px; color: #888;">Com carinho,<br>Equipe MarriPlan</p>
+    </div>
+  </body>
+</html>
+"""
