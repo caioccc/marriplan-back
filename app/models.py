@@ -300,8 +300,45 @@ class Guest(models.Model):
     phone = models.CharField(max_length=20)
     whatsapp = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True, null=True)
+    alergias = models.CharField(max_length=255, blank=True, null=True)
+    acompanhantes = models.PositiveIntegerField(blank=True, null=True)
+    observacoes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
+
+
+class Gift(models.Model):
+    STATUS_CHOICES = [
+        ("available", "Disponível"),
+        ("purchased", "Comprado"),
+        ("reserved", "Reservado"),
+    ]
+    CATEGORY_CHOICES = [
+        ("home", "Casa"),
+        ("travel", "Viagem"),
+        ("money", "Dinheiro"),
+        ("other", "Outros"),
+    ]
+    wedding_profile = models.ForeignKey('UserWeddingProfile', on_delete=models.CASCADE, related_name='gifts')
+    name = models.CharField(max_length=120)
+    value = models.DecimalField(max_digits=10, decimal_places=2)
+    link = models.URLField(blank=True, null=True)
+    description = models.TextField(blank=True)
+    category = models.CharField(max_length=30, choices=CATEGORY_CHOICES)
+    image = models.URLField(blank=True, null=True, help_text='Cloudinary image URL')
+    icon = models.CharField(max_length=50, blank=True, help_text='Icon name or CSS class')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="available")
+    purchased_by = models.CharField(max_length=120, blank=True, help_text='Name of the person who purchased')
+    purchase_date = models.DateTimeField(blank=True, null=True)
+    product_code = models.CharField(max_length=100, blank=True, help_text='Product code or identifier')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def get_status_display(self):
+        return dict(self.STATUS_CHOICES).get(self.status, 'Desconhecido')
+
+    def __str__(self):
+        return f"{self.name} - {self.get_status_display()}"

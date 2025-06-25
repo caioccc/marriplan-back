@@ -12,17 +12,20 @@ import qrcode
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from google.auth.transport import requests
 from google.oauth2 import id_token
 from knox.auth import TokenAuthentication
 from knox.models import AuthToken
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 from rest_framework import generics, permissions, serializers, status, viewsets, filters
 from rest_framework.decorators import action, api_view, permission_classes, parser_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.parsers import MultiPartParser, FormParser
+import pandas as pd
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -37,7 +40,7 @@ from app.core.models.llm.chat import (ChatRequest, generate_streaming_response,
 from app.core.renderers import EventStreamRenderer
 from app.models import (ChatMessage, Notification, UserSession, UserSettings,
                         UserWeddingProfile, WeddingSite, WeddingSiteHistory,
-                        WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest)
+                        WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest, Gift)
 from app.serializers import (ChatMessageSerializer, LoginSerializer,
                              NotificationSerializer, PreLoginSerializer,
                              RegisterSerializer, UserSerializer,
@@ -46,8 +49,8 @@ from app.serializers import (ChatMessageSerializer, LoginSerializer,
                              WeddingSiteHistorySerializer,
                              WeddingSiteSerializer, WeddingImageSerializer,
                              ChecklistTaskSerializer, ChecklistTaskAttachmentSerializer, ChecklistTaskShareSerializer,
-                             GuestSerializer)
-from app.utils import check_and_send_checklist_reminders
+                             GuestSerializer, GiftSerializer)
+from app.utils import check_and_send_checklist_reminders, notify_gift_status_change
 
 # Configure Cloudinary (pode ser feito no settings.py)
 cloudinary.config(
@@ -1118,6 +1121,7 @@ class ChecklistTaskShareViewSet(viewsets.ModelViewSet):
 class GuestViewSet(viewsets.ModelViewSet):
     serializer_class = GuestSerializer
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_queryset(self):
         user = self.request.user
@@ -1137,3 +1141,146 @@ class GuestViewSet(viewsets.ModelViewSet):
             serializer.save(user=user, wedding_profile=user.wedding_profile)
         else:
             serializer.save(user=user)
+
+    @action(detail=False, methods=['get'], url_path='download-model')
+    def download_model(self, request):
+        # Modelo padrão CSV
+        columns = ['name', 'phone', 'whatsapp', 'email', 'alergias', 'acompanhantes', 'observacoes']
+        df = pd.DataFrame(columns=columns)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="modelo_convidados.csv"'
+        df.to_csv(response, index=False)
+        return response
+
+    @action(detail=False, methods=['post'], url_path='import', parser_classes=[MultiPartParser, FormParser])
+    def import_guests(self, request):
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'detail': 'Arquivo não enviado.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if file.name.endswith('.csv'):
+                df = pd.read_csv(file)
+            elif file.name.endswith('.xlsx'):
+                df = pd.read_excel(file)
+            else:
+                return Response({'detail': 'Formato não suportado. Envie CSV ou Excel.'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'detail': f'Erro ao ler arquivo: {e}'}, status=status.HTTP_400_BAD_REQUEST)
+        errors = []
+        created = 0
+        for idx, row in df.iterrows():
+            data = row.to_dict()
+            data = {k: (v if pd.notnull(v) else None) for k, v in data.items()}
+            # Normaliza campos opcionais: se vierem None, NaN ou vazio, vira string vazia
+            for field in ['whatsapp', 'phone', 'alergias', 'acompanhantes', 'observacoes']:
+                if field in data and (data[field] is None or str(data[field]).strip() == '' or pd.isna(data[field])):
+                    data[field] = ''
+            serializer = GuestSerializer(data=data)
+            if serializer.is_valid():
+                # Verifica duplicidade de e-mail
+                wedding_profile = getattr(request.user, 'wedding_profile', None)
+                if data.get('email') and Guest.objects.filter(email=data['email'], wedding_profile=wedding_profile).exists():
+                    errors.append({'row': idx+2, 'error': 'E-mail duplicado'})
+                    continue
+                # Salva explicitamente user e wedding_profile
+                if wedding_profile:
+                    serializer.save(user=request.user, wedding_profile=wedding_profile)
+                else:
+                    serializer.save(user=request.user)
+                created += 1
+            else:
+                errors.append({'row': idx+2, 'error': serializer.errors})
+        if errors:
+            return Response({'detail': f'{created} convidados importados. Alguns registros possuem erro.', 'errors': errors}, status=status.HTTP_207_MULTI_STATUS)
+        return Response({'detail': f'{created} convidados importados com sucesso.'})
+
+    @action(detail=False, methods=['get'], url_path='export')
+    def export_guests(self, request):
+        format = request.query_params.get('format', 'pdf')
+        queryset = self.filter_queryset(self.get_queryset())
+        # Filtros podem ser aplicados aqui
+        data = GuestSerializer(queryset, many=True).data
+        df = pd.DataFrame(data)
+        # Campos personalizados
+        df['status_rsvp'] = ''
+        df['grupo'] = ''
+        if format == 'csv':
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="convidados.csv"'
+            df.to_csv(response, index=False)
+            return response
+        elif format == 'xlsx':
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = 'attachment; filename="convidados.xlsx"'
+            with pd.ExcelWriter(response, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False)
+            return response
+        elif format == 'pdf':
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="convidados.pdf"'
+            buffer = io.BytesIO()
+            p = canvas.Canvas(buffer, pagesize=letter)
+            width, height = letter
+            y = height - 40
+            p.setFont('Helvetica', 10)
+            for i, row in df.iterrows():
+                text = ', '.join([f'{col}: {row[col]}' for col in df.columns])
+                p.drawString(40, y, text)
+                y -= 18
+                if y < 40:
+                    p.showPage()
+                    y = height - 40
+            p.save()
+            pdf = buffer.getvalue()
+            buffer.close()
+            response.write(pdf)
+            return response
+        else:
+            return Response({'detail': 'Formato não suportado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GiftViewSet(viewsets.ModelViewSet):
+    queryset = Gift.objects.all()
+    serializer_class = GiftSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name', 'description', 'category', 'product_code']
+    ordering_fields = ['name', 'value', 'category', 'status', 'created_at']
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+        user = self.request.user
+        wedding_profile = getattr(user, 'wedding_profile', None)
+        qs = Gift.objects.all()
+        if wedding_profile:
+            qs = qs.filter(wedding_profile=wedding_profile)
+        status_param = self.request.query_params.get('status')
+        if status_param:
+            qs = qs.filter(status=status_param)
+        return qs
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def mark_as_purchased(self, request, pk=None):
+        gift = self.get_object()
+        if gift.status == 'purchased':
+            return Response({'detail': 'Gift already marked as purchased.'}, status=400)
+        gift.status = 'purchased'
+        gift.purchased_by = request.data.get('purchased_by', '') or request.user.get_full_name() or request.user.username
+        gift.purchase_date = timezone.now()
+        gift.save()
+        message = request.data.get('message', '')
+        notify_gift_status_change(gift, 'purchased', message=message)
+        return Response(GiftSerializer(gift, context={'request': request}).data)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def unmark_as_purchased(self, request, pk=None):
+        gift = self.get_object()
+        if gift.status != 'purchased':
+            return Response({'detail': 'Gift is not marked as purchased.'}, status=400)
+        gift.status = 'available'  # ou o valor default do status
+        gift.purchased_by = ''
+        gift.purchase_date = None
+        gift.save()
+        notify_gift_status_change(gift, 'unmarked')
+        return Response(GiftSerializer(gift, context={'request': request}).data)

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from app.models import CustomUser, UserSession, ChatMessage, UserSettings, Notification, UserWeddingProfile, WeddingSite, WeddingSiteHistory, WeddingImage
-from .models import ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, ChecklistTaskNotification, Guest
+from .models import ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, ChecklistTaskNotification, Guest, Gift
 
 
 class UserSettingsAdmin(admin.ModelAdmin):
@@ -111,10 +111,18 @@ class ChecklistTaskNotificationAdmin(admin.ModelAdmin):
 
 @admin.register(Guest)
 class GuestAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'phone', 'whatsapp', 'email', 'user', 'wedding_profile', 'created_at', 'updated_at')
-    search_fields = ('name', 'phone', 'whatsapp', 'email', 'user__username', 'wedding_profile__user__username')
+    list_display = ('id', 'name', 'phone', 'whatsapp', 'email', 'alergias', 'acompanhantes', 'observacoes', 'user', 'wedding_profile', 'created_at', 'updated_at')
+    search_fields = ('name', 'phone', 'whatsapp', 'email', 'alergias', 'observacoes', 'user__username', 'wedding_profile__user__username')
     list_filter = ()
     ordering = ('-created_at',)
+
+
+@admin.register(Gift)
+class GiftAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'value', 'category', 'status', 'wedding_profile', 'purchased_by', 'purchase_date', 'created_at')
+    list_filter = ('status', 'category', 'wedding_profile')
+    search_fields = ('name', 'description', 'product_code', 'wedding_profile__user__username')
+    readonly_fields = ('created_at', 'updated_at')
 
 
 # Registre os outros modelos normalmente

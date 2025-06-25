@@ -56,3 +56,57 @@ def check_and_send_checklist_reminders(user):
                 )
         except Exception as e:
             logging.error(f'Erro ao criar lembrete/checklist/email para o usuário {user.id} e tarefa {task.id}: {e}', exc_info=True)
+
+
+def notify_gift_status_change(gift, action, message=None):
+    """
+    Notifica os noivos por Notification e email ao marcar/desmarcar presente.
+    action: 'purchased' ou 'unmarked'
+    message: mensagem livre do comprador (opcional)
+    """
+    from app.constants import EMAIL_GIFT_PURCHASED_SUBJECT, EMAIL_GIFT_PURCHASED_BODY, EMAIL_GIFT_UNMARKED_SUBJECT, EMAIL_GIFT_UNMARKED_BODY
+    from app.models import Notification
+    wedding_profile = getattr(gift, 'wedding_profile', None)
+    if not wedding_profile:
+        return
+    # Suporte a wedding_profile.user (um noivo) ou wedding_profile.users (muitos)
+    users = []
+    if hasattr(wedding_profile, 'users') and wedding_profile.users:
+        users = list(wedding_profile.users.all())
+    elif hasattr(wedding_profile, 'user') and wedding_profile.user:
+        users = [wedding_profile.user]
+    for user in users:
+        if action == 'purchased':
+            subject = EMAIL_GIFT_PURCHASED_SUBJECT
+            html_message = EMAIL_GIFT_PURCHASED_BODY.format(
+                gift_name=gift.name,
+                purchased_by=gift.purchased_by or 'Desconhecido',
+                message=message or ''
+            )
+            notif_title = '🎁 Presente comprado!'
+            notif_message = f'O presente "{gift.name}" foi marcado como comprado. Comprado por: {gift.purchased_by or "Desconhecido"}.'
+        else:
+            subject = EMAIL_GIFT_UNMARKED_SUBJECT
+            html_message = EMAIL_GIFT_UNMARKED_BODY.format(
+                gift_name=gift.name
+            )
+            notif_title = '🎁 Presente desmarcado'
+            notif_message = f'O presente "{gift.name}" foi desmarcado como comprado.'
+        Notification.objects.create(
+            user=user,
+            type='info',
+            title=notif_title,
+            message=notif_message,
+            is_read=False
+        )
+        if user and user.email:
+            send_mail(
+                subject=subject,
+                message=notif_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                html_message=html_message,
+                fail_silently=True,
+            )
+            logging.info(f'Email enviado para {user.email} sobre o presente "{gift.name}" ({action})')
+        logging.info(f'Notificação enviada para {user.username} sobre o presente "{gift.name}" ({action})')

@@ -6,10 +6,11 @@ from app.viewsets import NotificationViewSet, GoogleLoginView
 from app.viewsets import SignUpAPI, SignInAPI, MainUser, UserSessionViewSet, ChatMessageViewSet, UserViewSet, \
     ConfirmEmailAPI, ResendConfirmationEmailAPI, ResetPasswordRequestAPI, ResetPasswordConfirmAPI, delete_all_messages, \
     UserSettingsAPI, delete_all_sessions, generate_2fa_qr, enable_2fa, disable_2fa, PreLoginAPI
-from .viewsets import UserWeddingProfileViewSet, WeddingSiteViewSet, WeddingSiteHistoryViewSet, public_wedding_site, \
-    upload_cloudinary, delete_cloudinary_image
 from .viewsets import ChecklistTaskViewSet, ChecklistTaskAttachmentViewSet, ChecklistTaskShareViewSet
 from .viewsets import GuestViewSet
+from .viewsets import UserWeddingProfileViewSet, WeddingSiteViewSet, WeddingSiteHistoryViewSet, public_wedding_site, \
+    upload_cloudinary, delete_cloudinary_image
+from .viewsets import GiftViewSet
 
 router = DefaultRouter()
 router.register(r'wedding-profile', UserWeddingProfileViewSet, basename='wedding-profile')
@@ -19,6 +20,7 @@ router.register(r'checklist-tasks', ChecklistTaskViewSet, basename='checklisttas
 router.register(r'checklist-attachments', ChecklistTaskAttachmentViewSet, basename='checklisttaskattachment')
 router.register(r'checklist-shares', ChecklistTaskShareViewSet, basename='checklisttaskshare')
 router.register(r'guests', GuestViewSet, basename='guest')
+router.register(r'gifts', GiftViewSet, basename='gift')
 
 urlpatterns = []
 

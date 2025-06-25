@@ -89,3 +89,33 @@ CHECKLIST_TASK_REMINDER_EMAIL_TEMPLATE = """
   </body>
 </html>
 """
+EMAIL_GIFT_PURCHASED_SUBJECT = '🎁 Presente comprado na sua lista!'
+EMAIL_GIFT_PURCHASED_BODY = """
+<html>
+  <body style=\"font-family: Arial, sans-serif; color: #333;\">
+    <div style=\"max-width: 480px; margin: auto; border: 1px solid #eee; border-radius: 8px; padding: 24px;\">
+      <h2 style=\"color: #2d8cff;\">🎁 Um presente foi comprado!</h2>
+      <p>Olá,</p>
+      <p>O presente <b>{gift_name}</b> foi marcado como comprado na sua lista de presentes.</p>
+      <p>Comprado por: <b>{purchased_by}</b></p>
+      <p>Mensagem: <i>{message}</i></p>
+      <hr>
+      <p style=\"font-size: 14px; color: #888;\">Com carinho,<br>Equipe MarriPlan</p>
+    </div>
+  </body>
+</html>
+"""
+EMAIL_GIFT_UNMARKED_SUBJECT = '🎁 Presente desmarcado como comprado'
+EMAIL_GIFT_UNMARKED_BODY = """
+<html>
+  <body style=\"font-family: Arial, sans-serif; color: #333;\">
+    <div style=\"max-width: 480px; margin: auto; border: 1px solid #eee; border-radius: 8px; padding: 24px;\">
+      <h2 style=\"color: #2d8cff;\">🎁 Presente desmarcado como comprado</h2>
+      <p>Olá,</p>
+      <p>O presente <b>{gift_name}</b> foi desmarcado como comprado na sua lista de presentes.</p>
+      <hr>
+      <p style=\"font-size: 14px; color: #888;\">Com carinho,<br>Equipe MarriPlan</p>
+    </div>
+  </body>
+</html>
+"""

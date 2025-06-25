@@ -3,7 +3,7 @@ import string
 
 from app.models import (ChatMessage, CustomUser, Notification, UserSession,
                         UserSettings, UserWeddingProfile, WeddingSite,
-                        WeddingSiteHistory, WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest)
+                        WeddingSiteHistory, WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest, Gift)
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.text import slugify
 from rest_framework import serializers
@@ -208,5 +208,16 @@ class ChecklistTaskShareSerializer(serializers.ModelSerializer):
 class GuestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guest
-        fields = ['id', 'name', 'phone', 'whatsapp', 'email', 'user', 'wedding_profile', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'phone', 'whatsapp', 'email', 'alergias', 'acompanhantes', 'observacoes', 'user', 'wedding_profile', 'created_at', 'updated_at']
         read_only_fields = ['id', 'user', 'wedding_profile', 'created_at', 'updated_at']
+
+
+class GiftSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Gift
+        fields = [
+            'id', 'wedding_profile', 'name', 'value', 'link', 'description', 'category',
+            'image', 'icon', 'status', 'purchased_by',
+            'purchase_date', 'product_code', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'purchase_date', 'created_at', 'updated_at']
