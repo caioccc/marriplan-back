@@ -321,6 +321,16 @@ class Gift(models.Model):
         ("travel", "Viagem"),
         ("money", "Dinheiro"),
         ("other", "Outros"),
+        ("experience", "Experiência"),
+        ("charity", "Caridade"),
+        ("electronics", "Eletrônicos"),
+        ("furniture", "Móveis"),
+        ("kitchen", "Cozinha"),
+        ("clothing", "Roupas"),
+        ("books", "Livros"),
+        ("toys", "Brinquedos"),
+        ("jewelry", "Joias"),
+        ("decor", "Decoração"),
     ]
     wedding_profile = models.ForeignKey('UserWeddingProfile', on_delete=models.CASCADE, related_name='gifts')
     name = models.CharField(max_length=120)
@@ -342,3 +352,12 @@ class Gift(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.get_status_display()}"
+
+
+class GiftListShareToken(models.Model):
+    wedding_profile = models.OneToOneField('UserWeddingProfile', on_delete=models.CASCADE, related_name='gift_share_token')
+    token = models.CharField(max_length=64, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Token de compartilhamento de presentes para {self.wedding_profile}"

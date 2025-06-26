@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from app.models import CustomUser, UserSession, ChatMessage, UserSettings, Notification, UserWeddingProfile, WeddingSite, WeddingSiteHistory, WeddingImage
-from .models import ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, ChecklistTaskNotification, Guest, Gift
+from .models import ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, ChecklistTaskNotification, Guest, Gift, GiftListShareToken
 
 
 class UserSettingsAdmin(admin.ModelAdmin):
@@ -123,6 +123,13 @@ class GiftAdmin(admin.ModelAdmin):
     list_filter = ('status', 'category', 'wedding_profile')
     search_fields = ('name', 'description', 'product_code', 'wedding_profile__user__username')
     readonly_fields = ('created_at', 'updated_at')
+
+
+@admin.register(GiftListShareToken)
+class GiftListShareTokenAdmin(admin.ModelAdmin):
+    list_display = ('wedding_profile', 'token', 'created_at')
+    search_fields = ('wedding_profile__user__username', 'token')
+    readonly_fields = ('token', 'created_at')
 
 
 # Registre os outros modelos normalmente

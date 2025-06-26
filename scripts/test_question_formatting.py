@@ -18,19 +18,19 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 import django
 django.setup()
 
-from app.viewsets import ChatMessageViewSet
+from backend.app.viewsets_old import ChatMessageViewSet
 from app.core.services.question import QuestionService, QuestionDisplay
 
 def test_area_mappings():
     """Testa o mapeamento de áreas para diferentes matérias."""
-    
+
     print("=== Teste de Mapeamento de Áreas ===\n")
-    
+
     viewset = ChatMessageViewSet()
-    
+
     test_messages = [
         "me dê uma questão de português",
-        "quero uma questão de matemática", 
+        "quero uma questão de matemática",
         "questão de física por favor",
         "preciso de uma questão de geografia",
         "questão de história",
@@ -38,11 +38,11 @@ def test_area_mappings():
         "questão de biologia",
         "questão de inglês"
     ]
-    
+
     for message in test_messages:
         print(f"Mensagem: '{message}'")
         filters = viewset._extract_filters(message.lower())
-        
+
         if 'subject_area' in filters:
             area = filters['subject_area']
             print(f"  ✅ Área detectada: {area}")
@@ -53,16 +53,16 @@ def test_area_mappings():
                 print(f"     - ⚠️  Sem disciplina específica")
         else:
             print(f"  ❌ Nenhuma área detectada")
-        
+
         print()
 
 def test_question_formatting():
     """Testa a formatação de questões."""
-    
+
     print("\n=== Teste de Formatação de Questões ===\n")
-    
+
     question_service = QuestionService()
-    
+
     # Criar questões de exemplo para diferentes matérias
     test_questions = [
         {
@@ -76,7 +76,7 @@ def test_question_formatting():
             'year': 2024
         },
         {
-            'question_id': 'test_mat_001', 
+            'question_id': 'test_mat_001',
             'statement': 'Calcule o valor de x na equação.',
             'choices': {'A': '1', 'B': '2', 'C': '3', 'D': '4', 'E': '5'},
             'subject_area': ['MATEMÁTICA E SUAS TECNOLOGIAS', 'Matemática'],
@@ -92,19 +92,19 @@ def test_question_formatting():
             'subject_area': ['CIÊNCIAS DA NATUREZA E SUAS TECNOLOGIAS', 'Física'],
             'specific_topic': 'Leis de Newton',
             'difficulty': 'Difícil',
-            'exam': 'ENEM', 
+            'exam': 'ENEM',
             'year': 2024
         }
     ]
-    
+
     for question_data in test_questions:
         print(f"Questão: {question_data['subject_area'][1] if len(question_data['subject_area']) > 1 else question_data['subject_area'][0]}")
         print("-" * 50)
-        
+
         # Formatar questão
         question_display = question_service.format_question_for_display(question_data)
         formatted_question = question_service.format_question_for_chat(question_display)
-        
+
         print(formatted_question)
         print("\n" + "="*70 + "\n")
 

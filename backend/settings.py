@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 import os
 from pathlib import Path
 
+import cloudinary
 import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -248,3 +249,9 @@ QDRANT_PORT = 6333
 
 # ETL
 RUN_ETL_ON_STARTUP = False  # Desabilitado: ETL não roda mais automaticamente para o chat
+
+cloudinary.config(
+    cloud_name='freelancerinc',
+    api_key='977733565746842',
+    api_secret='q552mjrVeEmgPs1kUxfKzp4wz2o',
+)

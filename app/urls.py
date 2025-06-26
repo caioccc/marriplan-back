@@ -2,15 +2,15 @@ from django.urls import path, include
 from knox import views as knox_views
 from rest_framework.routers import DefaultRouter
 
-from app.viewsets import NotificationViewSet, GoogleLoginView
-from app.viewsets import SignUpAPI, SignInAPI, MainUser, UserSessionViewSet, ChatMessageViewSet, UserViewSet, \
-    ConfirmEmailAPI, ResendConfirmationEmailAPI, ResetPasswordRequestAPI, ResetPasswordConfirmAPI, delete_all_messages, \
-    UserSettingsAPI, delete_all_sessions, generate_2fa_qr, enable_2fa, disable_2fa, PreLoginAPI
-from .viewsets import ChecklistTaskViewSet, ChecklistTaskAttachmentViewSet, ChecklistTaskShareViewSet
-from .viewsets import GuestViewSet
-from .viewsets import UserWeddingProfileViewSet, WeddingSiteViewSet, WeddingSiteHistoryViewSet, public_wedding_site, \
-    upload_cloudinary, delete_cloudinary_image
-from .viewsets import GiftViewSet
+from app.viewsets.auth import SignUpAPI, SignInAPI, PreLoginAPI, ConfirmEmailAPI, ResendConfirmationEmailAPI, \
+    ResetPasswordRequestAPI, ResetPasswordConfirmAPI, generate_2fa_qr, enable_2fa, disable_2fa, GoogleLoginView
+from app.viewsets.chat import delete_all_sessions, delete_all_messages, ChatMessageViewSet, UserSessionViewSet
+from app.viewsets.checklist import ChecklistTaskViewSet, ChecklistTaskAttachmentViewSet, ChecklistTaskShareViewSet
+from app.viewsets.gift import GiftViewSet, GiftListShareTokenView, PublicGiftListView
+from app.viewsets.guest import GuestViewSet
+from app.viewsets.user import NotificationViewSet, UserViewSet, UserWeddingProfileViewSet, MainUser, UserSettingsAPI
+from app.viewsets.utility import upload_cloudinary, delete_cloudinary_image
+from app.viewsets.wedding import WeddingSiteViewSet, WeddingSiteHistoryViewSet, public_wedding_site
 
 router = DefaultRouter()
 router.register(r'wedding-profile', UserWeddingProfileViewSet, basename='wedding-profile')
@@ -106,6 +106,9 @@ urlpatterns += [
 
     path('upload-cloudinary/', upload_cloudinary, name='upload-cloudinary'),
     path('delete-cloudinary-image/', delete_cloudinary_image, name='delete-cloudinary-image'),
+
+    path('gifts/share-token/', GiftListShareTokenView.as_view(), name='gift-share-token'),
+    path('gifts/public/<str:token>/', PublicGiftListView.as_view(), name='public-gift-list'),
 
     path('', include(router.urls)),
 ]

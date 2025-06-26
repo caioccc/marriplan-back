@@ -3,7 +3,7 @@ import string
 
 from app.models import (ChatMessage, CustomUser, Notification, UserSession,
                         UserSettings, UserWeddingProfile, WeddingSite,
-                        WeddingSiteHistory, WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest, Gift)
+                        WeddingSiteHistory, WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest, Gift, GiftListShareToken)
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.text import slugify
 from rest_framework import serializers
@@ -221,3 +221,9 @@ class GiftSerializer(serializers.ModelSerializer):
             'purchase_date', 'product_code', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'purchase_date', 'created_at', 'updated_at']
+
+
+class GiftListShareTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GiftListShareToken
+        fields = ['token', 'created_at']
