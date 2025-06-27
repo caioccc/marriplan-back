@@ -331,6 +331,8 @@ class Gift(models.Model):
         ("toys", "Brinquedos"),
         ("jewelry", "Joias"),
         ("decor", "Decoração"),
+        ("other", "Outro"),
+        ("gift_card", "Cartão Presente"),
     ]
     wedding_profile = models.ForeignKey('UserWeddingProfile', on_delete=models.CASCADE, related_name='gifts')
     name = models.CharField(max_length=120)

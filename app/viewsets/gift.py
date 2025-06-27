@@ -89,8 +89,48 @@ class GiftViewSet(viewsets.ModelViewSet):
     def download_template(self, request):
         wb = openpyxl.Workbook()
         ws = wb.active
-        ws.append(['name', 'value', 'link', 'description', 'category', 'image', 'icon', 'status', 'product_code'])
-        ws.append(['Exemplo de presente', 100, '', '', 'home', '', '', 'available', ''])
+        # Cabeçalhos em português (sem Ícone)
+        ws.append([
+            'Nome do Presente',
+            'Valor',
+            'Link',
+            'Descrição',
+            'Categoria',
+            'Imagem',
+            'Status',
+            'Código do Produto'
+        ])
+        # 3 exemplos realistas
+        ws.append([
+            'Panela Elétrica de Arroz',
+            199.90,
+            'https://www.magazineluiza.com.br/panela-arroz/p/123456/',
+            'Panela elétrica para preparar arroz de forma prática e rápida.',
+            'Casa',
+            'https://images.unsplash.com/photo-1519864600265-abb23847ef2c',
+            'Disponível',
+            'PA-123'
+        ])
+        ws.append([
+            'Jogo de Toalhas 5 peças',
+            149.99,
+            '',
+            'Jogo de toalhas 100% algodão, super macias.',
+            'Casa',
+            'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
+            'Disponível',
+            'JT-456'
+        ])
+        ws.append([
+            'Liquidificador Turbo',
+            249.00,
+            'https://www.americanas.com.br/liquidificador/p/654321/',
+            'Liquidificador potente com 5 velocidades.',
+            'Eletrodomésticos',
+            'https://images.unsplash.com/photo-1519125323398-675f0ddb6308',
+            'Disponível',
+            'LQ-789'
+        ])
         output = io.BytesIO()
         wb.save(output)
         output.seek(0)
@@ -104,20 +144,74 @@ class GiftViewSet(viewsets.ModelViewSet):
         file = request.FILES.get('file')
         if not file:
             return Response({'detail': 'Arquivo não enviado.'}, status=400)
-        fields = ['name', 'value', 'link', 'description', 'category', 'image', 'icon', 'status',
-                  'product_code']
+        # Mapeamento de cabeçalhos PT-BR para campos do model (sem Ícone)
+        header_map = {
+            'Nome do Presente': 'name',
+            'Valor': 'value',
+            'Link': 'link',
+            'Descrição': 'description',
+            'Categoria': 'category',
+            'Imagem': 'image',
+            'Status': 'status',
+            'Código do Produto': 'product_code',
+        }
+        fields = list(header_map.values())
+        def is_url(val):
+            if not val or not isinstance(val, str):
+                return False
+            return val.startswith('http://') or val.startswith('https://')
+        # Funções de normalização movidas para cá
+        def normalize_status(val):
+            if not val:
+                return 'available'
+            for code, label in Gift.STATUS_CHOICES:
+                if val == code or val.lower() == label.lower() or val.lower() == label.lower().capitalize():
+                    return code
+            return 'available'
+        def normalize_category(val):
+            if not val:
+                return 'other'
+            for code, label in Gift.CATEGORY_CHOICES:
+                if val == code or val.lower() == label.lower() or val.lower() == label.lower().capitalize():
+                    return code
+            return 'other'
+        def validate_row(data, row_idx):
+            errors = []
+            if not data.get('name') or str(data.get('name')).strip() == '':
+                errors.append(f"Linha {row_idx}: Nome do presente é obrigatório.")
+            if not data.get('value') or str(data.get('value')).strip() == '':
+                errors.append(f"Linha {row_idx}: Valor é obrigatório.")
+            if data.get('image') and not is_url(data.get('image')):
+                errors.append(f"Linha {row_idx}: Imagem deve ser um link válido (URL).")
+            # Choices válidos do model
+            VALID_STATUS = [c[0] for c in Gift.STATUS_CHOICES] + [c[1] for c in Gift.STATUS_CHOICES]
+            VALID_CATEGORY = [c[0] for c in Gift.CATEGORY_CHOICES] + [c[1] for c in Gift.CATEGORY_CHOICES]
+            status_value = data.get('status')
+            if status_value and status_value not in VALID_STATUS:
+                errors.append(f"Linha {row_idx}: Status inválido.")
+            category_value = data.get('category')
+            if category_value and category_value not in VALID_CATEGORY:
+                errors.append(f"Linha {row_idx}: Categoria inválida.")
+            return errors
         if file.name.endswith('.csv'):
             df = pd.read_csv(file)
+            if any(col in header_map for col in df.columns):
+                df = df.rename(columns=header_map)
             created, errors = 0, []
             for i, row in df.iterrows():
                 try:
-                    data = dict(
-                        zip(fields,
-                            row))
+                    data = dict(zip(fields, [row.get(f, '') for f in fields]))
                     data['wedding_profile'] = request.user.wedding_profile.id
+                    # Normalização e validação
+                    data['status'] = normalize_status(data.get('status'))
+                    data['category'] = normalize_category(data.get('category'))
+                    # Validações
+                    row_errors = validate_row(data, i + 2)
+                    if row_errors:
+                        errors.extend(row_errors)
+                        continue
                     for field in fields:
-                        if field in data and (
-                                data[field] is None or str(data[field]).strip() == '' or pd.isna(data[field])):
+                        if field in data and (data[field] is None or str(data[field]).strip() == '' or pd.isna(data[field])):
                             data[field] = ''
                     serializer = self.get_serializer(data=data)
                     serializer.is_valid(raise_exception=True)
@@ -128,16 +222,24 @@ class GiftViewSet(viewsets.ModelViewSet):
         elif file.name.endswith('.xlsx'):
             wb = openpyxl.load_workbook(file)
             ws = wb.active
+            header_row = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]
+            mapped_headers = [header_map.get(h, h) for h in header_row]
             created, errors = 0, []
             for i, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
                 try:
-                    data = dict(
-                        zip(fields,
-                            row))
+                    data = dict(zip(mapped_headers, row))
+                    data = {f: data.get(f, '') for f in fields}
                     data['wedding_profile'] = request.user.wedding_profile.id
+                    # Normalização e validação
+                    data['status'] = normalize_status(data.get('status'))
+                    data['category'] = normalize_category(data.get('category'))
+                    # Validações
+                    row_errors = validate_row(data, i)
+                    if row_errors:
+                        errors.extend(row_errors)
+                        continue
                     for field in fields:
-                        if field in data and (
-                                data[field] is None or str(data[field]).strip() == '' or pd.isna(data[field])):
+                        if field in data and (data[field] is None or str(data[field]).strip() == '' or pd.isna(data[field])):
                             data[field] = ''
                     serializer = self.get_serializer(data=data)
                     serializer.is_valid(raise_exception=True)
