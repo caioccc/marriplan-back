@@ -4,10 +4,11 @@ import pandas as pd
 from django.http import HttpResponse
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from rest_framework import (permissions, status, viewsets)
+from rest_framework import (permissions, status, viewsets, filters)
 from rest_framework.decorators import (action)
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
+
 
 from app.models import (Guest)
 from app.serializers import (GuestSerializer)
@@ -17,6 +18,10 @@ class GuestViewSet(viewsets.ModelViewSet):
     serializer_class = GuestSerializer
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name', 'email', 'phone']
+    ordering_fields = ['name', 'created_at']
+    ordering = ['-created_at']
 
     def get_queryset(self):
         user = self.request.user

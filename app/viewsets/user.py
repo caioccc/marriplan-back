@@ -145,7 +145,6 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
 class UserWeddingProfileViewSet(viewsets.ModelViewSet):
     serializer_class = UserWeddingProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return UserWeddingProfile.objects.filter(user=self.request.user)

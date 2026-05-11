@@ -35,7 +35,7 @@ class GoogleLoginView(APIView):
         if not token:
             return Response({'error': 'Token é obrigatório.'}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            idinfo = id_token.verify_oauth2_token(token, requests.Request())
+            idinfo = id_token.verify_oauth2_token(token, requests.Request(), clock_skew_in_seconds=30)
             email = idinfo['email']
             name = idinfo.get('name', '')
             # picture = idinfo.get('picture', '')
