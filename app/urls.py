@@ -4,7 +4,6 @@ from rest_framework.routers import DefaultRouter
 
 from app.viewsets.auth import SignUpAPI, SignInAPI, PreLoginAPI, ConfirmEmailAPI, ResendConfirmationEmailAPI, \
     ResetPasswordRequestAPI, ResetPasswordConfirmAPI, generate_2fa_qr, enable_2fa, disable_2fa, GoogleLoginView
-from app.viewsets.chat import delete_all_sessions, delete_all_messages, ChatMessageViewSet, UserSessionViewSet
 from app.viewsets.checklist import ChecklistTaskViewSet, ChecklistTaskAttachmentViewSet, ChecklistTaskShareViewSet
 from app.viewsets.gift import GiftViewSet, GiftListShareTokenView, PublicGiftListView
 from app.viewsets.guest import GuestViewSet
@@ -24,28 +23,6 @@ router.register(r'gifts', GiftViewSet, basename='gift')
 
 urlpatterns = []
 
-user_session_list = UserSessionViewSet.as_view({
-    'get': 'list',
-    'post': 'create',
-})
-
-user_session_detail = UserSessionViewSet.as_view({
-    'get': 'retrieve',
-    'put': 'update',
-    'delete': 'destroy'
-})
-
-chat_message_list = ChatMessageViewSet.as_view({
-    'get': 'list',
-    'post': 'create',
-})
-
-chat_message_detail = ChatMessageViewSet.as_view({
-    'get': 'retrieve',
-    'put': 'update',
-    'patch': 'partial_update',
-    'delete': 'destroy',
-})
 
 notification_list = NotificationViewSet.as_view({'get': 'list', 'post': 'create'})
 notification_detail = NotificationViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'})
@@ -70,21 +47,6 @@ urlpatterns += [
 
     path('user/<int:pk>/', UserViewSet.as_view({'get': 'retrieve'}), name="user"),
 
-    path('sessions/', user_session_list, name='user-session-list'),
-    path('sessions/<int:pk>/', user_session_detail, name='user-session-detail'),
-    path('sessions/delete-by-session-id/<str:session_id>/',
-         UserSessionViewSet.as_view({'delete': 'delete_by_session_id'}),
-         name='delete-by-session-id'),
-    path('sessions/<str:session_id>/', ChatMessageViewSet.as_view({'patch': 'update_title'}),
-         name='update-title'),
-
-    path('clear-sessions/delete-all/', delete_all_sessions, name='delete-all-sessions'),
-
-    path('messages/', chat_message_list, name='chat-message-list'),
-    path('messages/<int:pk>/', chat_message_detail, name='chat-message-detail'),
-    path('messages/send-message/', ChatMessageViewSet.as_view({'post': 'send_message'}), name='send-message'),
-    path('messages/stream-message/', ChatMessageViewSet.as_view({'post': 'stream_message'}), name='stream-message'),
-    path('messages/delete-all/', delete_all_messages, name='delete-all-messages'),
 
     path('settings/', UserSettingsAPI.as_view(), name='user-settings'),
 

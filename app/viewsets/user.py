@@ -1,5 +1,3 @@
-# app/viewsets/user.py — endpoints de usuário, configurações, perfil, sessões, notificações.
-
 from django.contrib.auth import get_user_model
 from knox.auth import TokenAuthentication
 from rest_framework import (generics, permissions, status, viewsets)

@@ -218,7 +218,6 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
-        'app.core.renderers.EventStreamRenderer',  # Custom SSE renderer
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
@@ -239,16 +238,7 @@ FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
 AUTH_USER_MODEL = 'app.CustomUser'
 
-# MongoDB
-MONGODB_URL = 'mongodb://localhost:27017/'
-MONGODB_DB = 'marriplan'
 
-# Qdrant
-QDRANT_HOST = 'localhost'
-QDRANT_PORT = 6333
-
-# ETL
-RUN_ETL_ON_STARTUP = False  # Desabilitado: ETL não roda mais automaticamente para o chat
 
 cloudinary.config(
     cloud_name='freelancerinc',

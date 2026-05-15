@@ -150,32 +150,7 @@ def send_mail_confirmation_email(user):
 
 
 def initialize_user_chat(user):
-    # Garante que o perfil de casamento existe
     UserWeddingProfile.objects.get_or_create(user=user)
-    if not UserSession.objects.filter(user=user).exists():
-        session = UserSession.objects.create(
-            user=user,
-            session_id=str(uuid.uuid4()),
-            title="Sessão Inicial"
-        )
-        ChatMessage.objects.create(
-            session=session,
-            is_user=False,
-            content=(
-                "Olá! 👋 Eu sou o seu assistente virtual do **Marriplan**, aqui para ajudar você a organizar cada detalhe do seu casamento perfeito!\n\n"
-                "Você pode me perguntar sobre:\n"
-                "- ✅ Checklist pré-casamento (12 meses)\n"
-                "- ✅ Configuração de RSVP e confirmação de presença\n"
-                "- ✅ Lista de presentes e organização de convidados\n"
-                "- ✅ Agenda do dia do casamento\n"
-                "- ✅ Dicas de fornecedores, decoração e muito mais!\n\n"
-                "**Como posso ajudar você hoje?**  \n"
-                "Exemplos:\n\n"
-                "- \"Como montar um checklist de 12 meses?\"\n"
-                "- \"Preciso de ideias para uma lista de presentes criativa.\"\n"
-                "- \"Como criar um formulário de RSVP eficaz?\""
-            )
-        )
     check_and_send_checklist_reminders(user)
     if not user.settings:
         user.settings = UserSettings.objects.create()
