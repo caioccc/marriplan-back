@@ -3,7 +3,7 @@ import string
 
 from app.models import (ChatMessage, CustomUser, Notification, UserSession,
                         UserSettings, UserWeddingProfile, WeddingSite,
-                        WeddingSiteHistory, WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest, Gift, GiftListShareToken)
+                        WeddingSiteHistory, WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest, GuestConfirmationToken, Gift, GiftListShareToken)
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.text import slugify
 from rest_framework import serializers
@@ -208,7 +208,7 @@ class ChecklistTaskShareSerializer(serializers.ModelSerializer):
 class GuestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guest
-        fields = ['id', 'name', 'phone', 'whatsapp', 'email', 'alergias', 'acompanhantes', 'observacoes', 'user', 'wedding_profile', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'phone', 'whatsapp', 'email', 'alergias', 'acompanhantes', 'observacoes', 'status_presenca', 'user', 'wedding_profile', 'created_at', 'updated_at']
         read_only_fields = ['id', 'user', 'wedding_profile', 'created_at', 'updated_at']
 
 
@@ -227,3 +227,10 @@ class GiftListShareTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = GiftListShareToken
         fields = ['token', 'created_at']
+
+
+class GuestConfirmationTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GuestConfirmationToken
+        fields = ['id', 'guest', 'token', 'created_at', 'expires_at', 'used_at', 'confirmation_status']
+        read_only_fields = ['id', 'token', 'created_at', 'expires_at', 'used_at']

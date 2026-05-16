@@ -9,8 +9,12 @@ from rest_framework.decorators import (action)
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 
+import re
+from urllib.parse import quote_plus
+from django.utils import timezone
+from django.conf import settings
 
-from app.models import (Guest)
+from app.models import (Guest, GuestConfirmationToken)
 from app.serializers import (GuestSerializer)
 
 
@@ -166,3 +170,79 @@ class GuestViewSet(viewsets.ModelViewSet):
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({'detail': 'Formato não suportado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], url_path='generate-confirmation-link')
+    def generate_confirmation_link(self, request, pk=None):
+        """Gera (ou reutiliza) um token de confirmação para o convidado e retorna a URL de confirmação."""
+        guest = self.get_object()
+        user = request.user
+        wedding_profile = getattr(user, 'wedding_profile', None)
+        if not ((wedding_profile and guest.wedding_profile == wedding_profile) or guest.user == user):
+            return Response({'detail': 'Não autorizado.'}, status=status.HTTP_403_FORBIDDEN)
+
+        token_obj = GuestConfirmationToken.objects.filter(guest=guest, used_at__isnull=True, expires_at__gt=timezone.now()).order_by('-created_at').first()
+        if not token_obj:
+            token_obj = GuestConfirmationToken.objects.create(guest=guest)
+
+        token_str = str(token_obj.token)
+        # Preferir Origin (frontend) se presente — útil em dev com front em :3000
+        origin = None
+        try:
+            origin = request.headers.get('Origin') or request.META.get('HTTP_ORIGIN')
+        except Exception:
+            origin = None
+
+        frontend_base = origin or getattr(settings, 'FRONTEND_URL', None)
+        if frontend_base:
+            confirmation_url = f"{str(frontend_base).rstrip('/')}/guests/confirm/{token_str}"
+        else:
+            confirmation_url = request.build_absolute_uri(f"/guests/confirm/{token_str}")
+
+        whatsapp_link = None
+        if guest.whatsapp:
+            text = f"Olá {guest.name}! Por gentileza, confirme sua presença no nosso casamento respondendo este formulário: {confirmation_url} Obrigado!"
+            wa_clean = re.sub(r'\D', '', guest.whatsapp)
+            whatsapp_link = f"https://wa.me/55{wa_clean}?text={quote_plus(text)}"
+
+        return Response({
+            'token': token_str,
+            'confirmation_url': confirmation_url,
+            'expires_at': token_obj.expires_at,
+            'whatsapp_link': whatsapp_link,
+        })
+
+    @action(detail=False, methods=['get'], url_path='confirm/(?P<token>[^/.]+)/verify', permission_classes=[permissions.AllowAny])
+    def confirm_verify(self, request, token=None):
+        """Verifica se um token é válido (usado para a página frontend)."""
+        try:
+            token_obj = GuestConfirmationToken.objects.get(token=token)
+        except GuestConfirmationToken.DoesNotExist:
+            return Response({'valid': False}, status=status.HTTP_404_NOT_FOUND)
+
+        if not token_obj.is_valid():
+            return Response({'valid': False}, status=status.HTTP_400_BAD_REQUEST)
+
+        guest = token_obj.guest
+        return Response({'valid': True, 'guest_name': guest.name, 'guest_id': guest.id})
+
+    @action(detail=False, methods=['post'], url_path='confirm/(?P<token>[^/.]+)', parser_classes=[JSONParser], permission_classes=[permissions.AllowAny])
+    def confirm(self, request, token=None):
+        """Recebe confirmações do frontend e atualiza o Guest e o token."""
+        status_choice = request.data.get('status')
+        if status_choice not in dict(Guest.STATUS_PRESENCA_CHOICES).keys():
+            return Response({'detail': 'Status inválido.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            token_obj = GuestConfirmationToken.objects.get(token=token)
+        except GuestConfirmationToken.DoesNotExist:
+            return Response({'detail': 'Token inválido.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if not token_obj.is_valid():
+            return Response({'detail': 'Token inválido ou expirado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        guest = token_obj.guest
+        guest.status_presenca = status_choice
+        guest.save()
+        token_obj.mark_used(status_choice)
+
+        return Response({'success': True, 'message': 'Presença atualizada com sucesso.', 'guest_id': guest.id, 'status': status_choice})

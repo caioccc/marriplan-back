@@ -1,6 +1,9 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+import uuid
+from datetime import timedelta
+from django.utils import timezone
 
 
 class AbstractTimeStamped(models.Model):
@@ -294,6 +297,12 @@ class ChecklistTaskNotification(models.Model):
 
 
 class Guest(models.Model):
+    STATUS_PRESENCA_CHOICES = [
+        ("Pending", "Pendente"),
+        ("Confirmed", "Confirmado"),
+        ("Refused", "Recusado"),
+    ]
+    
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='guests')
     wedding_profile = models.ForeignKey('UserWeddingProfile', on_delete=models.CASCADE, related_name='guests')
     name = models.CharField(max_length=120)
@@ -303,11 +312,44 @@ class Guest(models.Model):
     alergias = models.CharField(max_length=255, blank=True, null=True)
     acompanhantes = models.PositiveIntegerField(blank=True, null=True)
     observacoes = models.TextField(blank=True, null=True)
+    status_presenca = models.CharField(
+        max_length=20,
+        choices=STATUS_PRESENCA_CHOICES,
+        default="Pending",
+        null=True,
+        blank=True,
+        help_text="Status de presença do convidado"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
+
+
+class GuestConfirmationToken(models.Model):
+    guest = models.ForeignKey('Guest', on_delete=models.CASCADE, related_name='confirmation_tokens')
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    used_at = models.DateTimeField(null=True, blank=True)
+    confirmation_status = models.CharField(max_length=20, choices=Guest.STATUS_PRESENCA_CHOICES, null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(days=14)
+        super().save(*args, **kwargs)
+
+    def is_valid(self):
+        return (self.used_at is None) and (self.expires_at is None or self.expires_at > timezone.now())
+
+    def mark_used(self, status):
+        self.used_at = timezone.now()
+        self.confirmation_status = status
+        self.save()
+
+    def __str__(self):
+        return f"Token {self.token} for {self.guest}"
 
 
 class Gift(models.Model):
