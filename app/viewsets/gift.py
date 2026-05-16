@@ -6,6 +6,7 @@ import pandas as pd
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.db import transaction
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from rest_framework import (filters, permissions, status, viewsets)
@@ -45,6 +46,20 @@ class GiftViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        if request.data.get('status') == 'available':
+            gift = self.get_object()
+            if gift.status == 'available':
+                gift.purchased_by = ''
+                gift.purchase_date = None
+                gift.reserved_by = ''
+                gift.reserved_message = ''
+                gift.reserved_at = None
+                gift.save()
+                response.data = GiftSerializer(gift, context={'request': request}).data
+        return response
+
     def get_queryset(self):
         user = self.request.user
         wedding_profile = getattr(user, 'wedding_profile', None)
@@ -68,6 +83,9 @@ class GiftViewSet(viewsets.ModelViewSet):
         gift.purchased_by = request.data.get('purchased_by',
                                              '') or request.user.get_full_name() or request.user.username
         gift.purchase_date = timezone.now()
+        gift.reserved_by = ''
+        gift.reserved_message = ''
+        gift.reserved_at = None
         gift.save()
         message = request.data.get('message', '')
         notify_gift_status_change(gift, 'purchased', message=message)
@@ -81,6 +99,9 @@ class GiftViewSet(viewsets.ModelViewSet):
         gift.status = 'available'  # ou o valor default do status
         gift.purchased_by = ''
         gift.purchase_date = None
+        gift.reserved_by = ''
+        gift.reserved_message = ''
+        gift.reserved_at = None
         gift.save()
         notify_gift_status_change(gift, 'unmarked')
         return Response(GiftSerializer(gift, context={'request': request}).data)
@@ -305,6 +326,28 @@ class GiftViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'detail': f'Erro ao exportar PDF: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=False, methods=['get'], url_path='all', permission_classes=[permissions.IsAuthenticated])
+    def all(self, request):
+        """Retorna todos os presentes do perfil do casal sem paginação (uso para dashboards/exports)."""
+        user = request.user
+        wedding_profile = getattr(user, 'wedding_profile', None)
+        if not wedding_profile:
+            return Response({'detail': 'Usuário sem perfil de casamento.'}, status=400)
+        queryset = Gift.objects.filter(wedding_profile=wedding_profile)
+        # Permitir filtros básicos por search/ordering/status/category se desejado
+        search = request.GET.get('search')
+        if search:
+            queryset = queryset.filter(name__icontains=search) | queryset.filter(category__icontains=search)
+        status_param = request.GET.get('status')
+        if status_param:
+            status_list = [s.strip() for s in status_param.split(',') if s.strip()]
+            queryset = queryset.filter(status__in=status_list)
+        category_param = request.GET.get('category')
+        if category_param:
+            queryset = queryset.filter(category=category_param)
+
+        serializer = GiftSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
 
 class GiftListShareTokenView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -402,3 +445,37 @@ class PublicGiftListView(APIView):
             'categories': categories_options,
             'status': status_options,
         })
+
+    def post(self, request, token):
+        token_obj = get_object_or_404(GiftListShareToken, token=token)
+        gift_id = request.data.get('gift_id')
+        if not gift_id:
+            return Response({'detail': 'Presente não informado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        gift = get_object_or_404(Gift, pk=gift_id, wedding_profile=token_obj.wedding_profile)
+        if gift.status != 'available':
+            return Response({'detail': 'Este presente não está disponível para reserva.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        reserver_name = (request.data.get('reserver_name') or request.data.get('name') or '').strip()
+        reservation_message = (request.data.get('message') or '').strip()
+
+        with transaction.atomic():
+            gift.status = 'reserved'
+            gift.reserved_by = reserver_name
+            gift.reserved_message = reservation_message
+            gift.reserved_at = timezone.now()
+            gift.purchased_by = ''
+            gift.purchase_date = None
+            gift.save()
+
+        notification_result = notify_gift_status_change(
+            gift,
+            'reserved',
+            message=reservation_message,
+            reserved_by=reserver_name,
+        )
+
+        return Response({
+            'gift': GiftSerializer(gift, context={'request': request}).data,
+            'whatsapp_links': notification_result.get('whatsapp_links', []),
+        }, status=status.HTTP_200_OK)

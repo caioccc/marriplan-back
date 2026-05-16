@@ -46,6 +46,15 @@ class GuestViewSet(viewsets.ModelViewSet):
         else:
             serializer.save(user=user)
 
+    @action(detail=False, methods=['get'], url_path='all', permission_classes=[permissions.IsAuthenticated])
+    def all_guests(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = GuestSerializer(queryset, many=True)
+        return Response({
+            'results': serializer.data,
+            'count': queryset.count(),
+        })
+
     @action(detail=False, methods=['get'], url_path='download-model')
     def download_model(self, request):
         # Modelo padrão CSV
@@ -200,7 +209,7 @@ class GuestViewSet(viewsets.ModelViewSet):
 
         whatsapp_link = None
         if guest.whatsapp:
-            text = f"Olá {guest.name}! Por gentileza, confirme sua presença no nosso casamento respondendo este formulário: {confirmation_url} Obrigado!"
+            text = f"Olá {guest.name}! Por gentileza, confirme sua presença no nosso casamento respondendo este formulário: {confirmation_url} \n\n O convite formal será enviado via papelaria. Obrigado!"
             wa_clean = re.sub(r'\D', '', guest.whatsapp)
             whatsapp_link = f"https://wa.me/55{wa_clean}?text={quote_plus(text)}"
 

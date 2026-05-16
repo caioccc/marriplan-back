@@ -217,10 +217,11 @@ class GiftSerializer(serializers.ModelSerializer):
         model = Gift
         fields = [
             'id', 'wedding_profile', 'name', 'value', 'link', 'description', 'category',
-            'image', 'icon', 'status', 'purchased_by',
-            'purchase_date', 'product_code', 'created_at', 'updated_at'
+            'image', 'icon', 'status', 'purchased_by', 'purchase_date',
+            'reserved_by', 'reserved_message', 'reserved_at',
+            'product_code', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'purchase_date', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'purchase_date', 'reserved_at', 'created_at', 'updated_at']
 
 
 class GiftListShareTokenSerializer(serializers.ModelSerializer):

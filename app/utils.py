@@ -2,6 +2,8 @@ import logging
 import secrets
 import uuid
 from datetime import timedelta
+import re
+from urllib.parse import quote_plus
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -12,7 +14,8 @@ from rest_framework.response import Response
 
 from app.constants import CHECKLIST_TASK_REMINDER_EMAIL_TEMPLATE, EMAIL_CONFIRMATION_HTML_TEMPLATE, \
     EMAIL_WEDDING_SITE_CREATE_SUBJECT, EMAIL_WEDDING_SITE_CREATE_BODY, EMAIL_WEDDING_SITE_UPDATE_SUBJECT, \
-    EMAIL_WEDDING_SITE_UPDATE_BODY
+    EMAIL_WEDDING_SITE_UPDATE_BODY, EMAIL_GIFT_PURCHASED_SUBJECT, EMAIL_GIFT_PURCHASED_BODY, \
+    EMAIL_GIFT_UNMARKED_SUBJECT, EMAIL_GIFT_UNMARKED_BODY, EMAIL_GIFT_RESERVED_SUBJECT, EMAIL_GIFT_RESERVED_BODY
 from app.models import ChecklistTask, ChecklistTaskNotification, Notification, UserWeddingProfile, UserSession, \
     ChatMessage, UserSettings
 from app.serializers import UserSerializer
@@ -71,24 +74,40 @@ def check_and_send_checklist_reminders(user):
                           exc_info=True)
 
 
-def notify_gift_status_change(gift, action, message=None):
+def _clean_whatsapp_number(phone):
+    digits = re.sub(r'\D', '', phone or '')
+    if not digits:
+        return ''
+    if digits.startswith('55') and len(digits) > 11:
+        return digits
+    return f'55{digits}'
+
+
+def build_whatsapp_link(phone, message):
+    number = _clean_whatsapp_number(phone)
+    if not number:
+        return None
+    return f'https://wa.me/{number}?text={quote_plus(message)}'
+
+
+def notify_gift_status_change(gift, action, message=None, reserved_by=None):
     """
-    Notifica os noivos por Notification e email ao marcar/desmarcar presente.
-    action: 'purchased' ou 'unmarked'
+    Notifica os noivos por Notification e email ao marcar/desmarcar/reservar presente.
+    action: 'purchased', 'unmarked' ou 'reserved'
     message: mensagem livre do comprador (opcional)
     """
-    from app.constants import EMAIL_GIFT_PURCHASED_SUBJECT, EMAIL_GIFT_PURCHASED_BODY, EMAIL_GIFT_UNMARKED_SUBJECT, \
-        EMAIL_GIFT_UNMARKED_BODY
     from app.models import Notification
     wedding_profile = getattr(gift, 'wedding_profile', None)
     if not wedding_profile:
-        return
+        return {'whatsapp_links': []}
     # Suporte a wedding_profile.user (um noivo) ou wedding_profile.users (muitos)
     users = []
     if hasattr(wedding_profile, 'users') and wedding_profile.users:
         users = list(wedding_profile.users.all())
     elif hasattr(wedding_profile, 'user') and wedding_profile.user:
         users = [wedding_profile.user]
+
+    whatsapp_links = []
     for user in users:
         if action == 'purchased':
             subject = EMAIL_GIFT_PURCHASED_SUBJECT
@@ -99,6 +118,19 @@ def notify_gift_status_change(gift, action, message=None):
             )
             notif_title = '🎁 Presente comprado!'
             notif_message = f'O presente "{gift.name}" foi marcado como comprado. Comprado por: {gift.purchased_by or "Desconhecido"}.'
+        elif action == 'reserved':
+            subject = EMAIL_GIFT_RESERVED_SUBJECT
+            reserved_name = reserved_by or 'um convidado'
+            custom_message = message.strip() if message else ''
+            html_message = EMAIL_GIFT_RESERVED_BODY.format(
+                gift_name=gift.name,
+                reserved_by=reserved_name,
+                message=custom_message or 'Sem mensagem adicional.'
+            )
+            notif_title = '🎁 Presente reservado!'
+            notif_message = f'O presente "{gift.name}" foi reservado por {reserved_name}.'
+            if custom_message:
+                notif_message += f' Mensagem: {custom_message}'
         else:
             subject = EMAIL_GIFT_UNMARKED_SUBJECT
             html_message = EMAIL_GIFT_UNMARKED_BODY.format(
@@ -124,6 +156,23 @@ def notify_gift_status_change(gift, action, message=None):
             )
             logging.info(f'Email enviado para {user.email} sobre o presente "{gift.name}" ({action})')
         logging.info(f'Notificação enviada para {user.username} sobre o presente "{gift.name}" ({action})')
+
+    if action == 'reserved':
+        reserved_name = reserved_by or 'um convidado'
+        custom_message = message.strip() if message else ''
+        whatsapp_text = f'Oi! O presente "{gift.name}" foi reservado por {reserved_name}.'
+        if custom_message:
+            whatsapp_text += f' Mensagem: {custom_message}'
+        if getattr(wedding_profile, 'telefone_noivo', ''):
+            link = build_whatsapp_link(wedding_profile.telefone_noivo, whatsapp_text)
+            if link:
+                whatsapp_links.append({'label': 'Noivo', 'url': link})
+        if getattr(wedding_profile, 'telefone_noiva', ''):
+            link = build_whatsapp_link(wedding_profile.telefone_noiva, whatsapp_text)
+            if link:
+                whatsapp_links.append({'label': 'Noiva', 'url': link})
+
+    return {'whatsapp_links': whatsapp_links}
 
 
 def send_mail_confirmation_email(user):
