@@ -3,7 +3,7 @@ import string
 
 from app.models import (ChatMessage, CustomUser, Notification, UserSession,
                         UserSettings, UserWeddingProfile, WeddingSite,
-                        WeddingSiteHistory, WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest, GuestConfirmationToken, Gift, GiftListShareToken)
+                        WeddingSiteHistory, WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest, GuestConfirmationToken, Gift, GiftListShareToken, SupplierCategory, Supplier, WeddingSupplier)
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.text import slugify
 from rest_framework import serializers
@@ -235,3 +235,37 @@ class GuestConfirmationTokenSerializer(serializers.ModelSerializer):
         model = GuestConfirmationToken
         fields = ['id', 'guest', 'token', 'created_at', 'expires_at', 'used_at', 'confirmation_status']
         read_only_fields = ['id', 'token', 'created_at', 'expires_at', 'used_at']
+
+
+class SupplierCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupplierCategory
+        fields = ['id', 'name', 'slug']
+
+
+class SupplierSerializer(serializers.ModelSerializer):
+    category_detail = SupplierCategorySerializer(source='category', read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(source='category', queryset=SupplierCategory.objects.all(), write_only=True)
+
+    class Meta:
+        model = Supplier
+        fields = [
+            'id', 'category_detail', 'category_id', 'name', 'company_name', 'description', 'phone', 'cnpj',
+            'whatsapp', 'email', 'instagram', 'website', 'city', 'state', 'cover_image_url',
+            'cover_image_public_id', 'status', 'is_featured', 'created_by_user', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_by_user', 'created_at', 'updated_at']
+
+
+class WeddingSupplierSerializer(serializers.ModelSerializer):
+    supplier_detail = SupplierSerializer(source='supplier', read_only=True)
+    supplier_id = serializers.PrimaryKeyRelatedField(source='supplier', queryset=Supplier.objects.all(), write_only=True)
+
+    class Meta:
+        model = WeddingSupplier
+        fields = [
+            'id', 'wedding', 'supplier_detail', 'supplier_id', 'is_hired', 'is_favorite',
+            'estimated_price', 'negotiated_price', 'paid_amount', 'contract_date', 'wedding_delivery_date',
+            'contract_file_url', 'contract_file_public_id', 'notes', 'status', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'wedding', 'created_at', 'updated_at']

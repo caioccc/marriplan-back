@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from app.models import CustomUser, UserSession, ChatMessage, UserSettings, Notification, UserWeddingProfile, WeddingSite, WeddingSiteHistory, WeddingImage
+from app.models import CustomUser, UserSession, ChatMessage, UserSettings, Notification, UserWeddingProfile, WeddingSite, WeddingSiteHistory, WeddingImage, SupplierCategory, Supplier, WeddingSupplier
 from .models import ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, ChecklistTaskNotification, Guest, Gift, GiftListShareToken
 
 
@@ -88,6 +88,26 @@ class WeddingImageAdmin(admin.ModelAdmin):
     list_display = ('id', 'url', 'id_cloudinary', 'folder', 'in_use', 'uploaded_at')
     list_filter = ('in_use', 'folder', 'uploaded_at')
     search_fields = ('url', 'id_cloudinary', 'folder')
+
+
+@admin.register(SupplierCategory)
+class SupplierCategoryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'slug')
+    search_fields = ('name', 'slug')
+
+
+@admin.register(Supplier)
+class SupplierAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'category', 'city', 'state', 'status', 'is_featured', 'created_by_user')
+    list_filter = ('status', 'is_featured', 'category', 'state')
+    search_fields = ('name', 'company_name', 'description', 'city', 'state', 'email', 'whatsapp')
+
+
+@admin.register(WeddingSupplier)
+class WeddingSupplierAdmin(admin.ModelAdmin):
+    list_display = ('id', 'wedding', 'supplier', 'status', 'is_hired', 'is_favorite', 'estimated_price', 'negotiated_price', 'paid_amount')
+    list_filter = ('status', 'is_hired', 'is_favorite')
+    search_fields = ('supplier__name', 'supplier__company_name', 'notes', 'wedding__user__username')
 
 
 @admin.register(ChecklistTask)

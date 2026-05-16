@@ -7,8 +7,9 @@ from app.viewsets.auth import SignUpAPI, SignInAPI, PreLoginAPI, ConfirmEmailAPI
 from app.viewsets.checklist import ChecklistTaskViewSet, ChecklistTaskAttachmentViewSet, ChecklistTaskShareViewSet
 from app.viewsets.gift import GiftViewSet, GiftListShareTokenView, PublicGiftListView
 from app.viewsets.guest import GuestViewSet
+from app.viewsets.supplier import SupplierCategoryViewSet, SupplierViewSet, WeddingSupplierViewSet
 from app.viewsets.user import NotificationViewSet, UserViewSet, UserWeddingProfileViewSet, MainUser, UserSettingsAPI
-from app.viewsets.utility import upload_cloudinary, delete_cloudinary_image
+from app.viewsets.utility import upload_cloudinary, upload_cloudinary_file, delete_cloudinary_image
 from app.viewsets.wedding import WeddingSiteViewSet, WeddingSiteHistoryViewSet, public_wedding_site
 
 router = DefaultRouter()
@@ -20,6 +21,9 @@ router.register(r'checklist-attachments', ChecklistTaskAttachmentViewSet, basena
 router.register(r'checklist-shares', ChecklistTaskShareViewSet, basename='checklisttaskshare')
 router.register(r'guests', GuestViewSet, basename='guest')
 router.register(r'gifts', GiftViewSet, basename='gift')
+router.register(r'supplier-categories', SupplierCategoryViewSet, basename='supplier-category')
+router.register(r'suppliers', SupplierViewSet, basename='supplier')
+router.register(r'wedding-suppliers', WeddingSupplierViewSet, basename='wedding-supplier')
 
 urlpatterns = []
 
@@ -67,6 +71,7 @@ urlpatterns += [
     path('site/<slug:slug>/', public_wedding_site, name='public-wedding-site'),
 
     path('upload-cloudinary/', upload_cloudinary, name='upload-cloudinary'),
+     path('upload-cloudinary-file/', upload_cloudinary_file, name='upload-cloudinary-file'),
     path('delete-cloudinary-image/', delete_cloudinary_image, name='delete-cloudinary-image'),
 
     path('gifts/share-token/', GiftListShareTokenView.as_view(), name='gift-share-token'),

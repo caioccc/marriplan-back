@@ -22,6 +22,7 @@ dependencies:
       - charset-normalizer==3.4.1
       - click==8.2.1
       - colorama==0.4.6
+      - cloudinary==1.44.1
       - coreapi==2.3.3
       - coreschema==0.0.4
       - cryptography==44.0.0

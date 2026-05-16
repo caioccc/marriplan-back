@@ -16,6 +16,8 @@ from django.conf import settings
 
 from app.models import (Guest, GuestConfirmationToken)
 from app.serializers import (GuestSerializer)
+from django.core.mail import send_mail
+from app.models import Notification
 
 
 class GuestViewSet(viewsets.ModelViewSet):
@@ -253,5 +255,38 @@ class GuestViewSet(viewsets.ModelViewSet):
         guest.status_presenca = status_choice
         guest.save()
         token_obj.mark_used(status_choice)
+
+        # Criar notificação para os noivos (usuários vinculados ao wedding_profile)
+        wedding_profile = getattr(guest, 'wedding_profile', None)
+        if wedding_profile:
+            users = []
+            if hasattr(wedding_profile, 'users') and wedding_profile.users:
+                users = list(wedding_profile.users.all())
+            elif hasattr(wedding_profile, 'user') and wedding_profile.user:
+                users = [wedding_profile.user]
+
+            notif_title = '🎉 Confirmação de presença'
+            notif_message = f'O convidado "{guest.name}" confirmou presença: {status_choice}.'
+            for user in users:
+                try:
+                    Notification.objects.create(
+                        user=user,
+                        type='info',
+                        title=notif_title,
+                        message=notif_message,
+                        is_read=False
+                    )
+                    # Enviar e-mail de aviso se e-mail estiver configurado
+                    if user.email:
+                        send_mail(
+                            subject='Confirmação de presença - Marriplan',
+                            message=notif_message,
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[user.email],
+                            fail_silently=True,
+                        )
+                except Exception:
+                    # Não falhar a requisição principal por erro na notificação
+                    pass
 
         return Response({'success': True, 'message': 'Presença atualizada com sucesso.', 'guest_id': guest.id, 'status': status_choice})

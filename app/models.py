@@ -4,6 +4,7 @@ from django.db import models
 import uuid
 from datetime import timedelta
 from django.utils import timezone
+from django.utils.text import slugify
 
 
 class AbstractTimeStamped(models.Model):
@@ -174,6 +175,102 @@ class WeddingImage(models.Model):
 
     def __str__(self):
         return f"{self.folder or ''} - {self.id_cloudinary}"
+
+
+class SupplierCategory(models.Model):
+    name = models.CharField(max_length=120, unique=True)
+    slug = models.SlugField(max_length=140, unique=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
+class Supplier(models.Model):
+    STATUS_APPROVED = 'APPROVED'
+    STATUS_PENDING = 'PENDING'
+    STATUS_CHOICES = [
+        (STATUS_APPROVED, 'Aprovado'),
+        (STATUS_PENDING, 'Pendente'),
+    ]
+
+    category = models.ForeignKey(SupplierCategory, on_delete=models.PROTECT, related_name='suppliers')
+    address = models.CharField(max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=160)
+    company_name = models.CharField(max_length=200, blank=True)
+    description = models.TextField(blank=True)
+    phone = models.CharField(max_length=30, blank=True)
+    cnpj = models.CharField(max_length=20, blank=True)
+    whatsapp = models.CharField(max_length=30, blank=True)
+    email = models.EmailField(blank=True)
+    instagram = models.CharField(max_length=120, blank=True)
+    website = models.URLField(blank=True)
+    city = models.CharField(max_length=120, blank=True)
+    state = models.CharField(max_length=60, blank=True)
+    cover_image_url = models.URLField(blank=True)
+    cover_image_public_id = models.CharField(max_length=255, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    is_featured = models.BooleanField(default=False)
+    created_by_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_suppliers',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-is_featured', 'name']
+
+    def __str__(self):
+        return self.name
+
+
+class WeddingSupplier(models.Model):
+    STATUS_QUOTING = 'QUOTING'
+    STATUS_NEGOTIATING = 'NEGOTIATING'
+    STATUS_HIRED = 'HIRED'
+    STATUS_PAID = 'PAID'
+    STATUS_CANCELED = 'CANCELED'
+    STATUS_CHOICES = [
+        (STATUS_QUOTING, 'Cotando'),
+        (STATUS_NEGOTIATING, 'Negociando'),
+        (STATUS_HIRED, 'Contratado'),
+        (STATUS_PAID, 'Pago'),
+        (STATUS_CANCELED, 'Cancelado'),
+    ]
+
+    wedding = models.ForeignKey(UserWeddingProfile, on_delete=models.CASCADE, related_name='wedding_suppliers')
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name='wedding_suppliers')
+    is_hired = models.BooleanField(default=False)
+    is_favorite = models.BooleanField(default=False)
+    estimated_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    negotiated_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    paid_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    contract_date = models.DateField(null=True, blank=True)
+    wedding_delivery_date = models.DateField(null=True, blank=True)
+    contract_file_url = models.URLField(blank=True)
+    contract_file_public_id = models.CharField(max_length=255, blank=True)
+    notes = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_QUOTING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-is_favorite', '-updated_at']
+        unique_together = ('wedding', 'supplier')
+
+    def __str__(self):
+        return f'{self.wedding} - {self.supplier}'
 
 
 class WeddingSite(AbstractTimeStamped):
