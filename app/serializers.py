@@ -252,7 +252,7 @@ class SupplierSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'category_detail', 'category_id', 'name', 'company_name', 'description', 'phone', 'cnpj',
             'whatsapp', 'email', 'instagram', 'website', 'city', 'state', 'cover_image_url',
-            'cover_image_public_id', 'status', 'is_featured', 'created_by_user', 'created_at', 'updated_at',
+            'cover_image_public_id', 'status', 'visibility', 'is_featured', 'created_by_user', 'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_by_user', 'created_at', 'updated_at']
 

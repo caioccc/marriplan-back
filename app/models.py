@@ -200,6 +200,12 @@ class Supplier(models.Model):
         (STATUS_APPROVED, 'Aprovado'),
         (STATUS_PENDING, 'Pendente'),
     ]
+    VISIBILITY_GLOBAL = 'GLOBAL'
+    VISIBILITY_SOLO = 'SOLO'
+    VISIBILITY_CHOICES = [
+        (VISIBILITY_GLOBAL, 'Global'),
+        (VISIBILITY_SOLO, 'Solo'),
+    ]
 
     category = models.ForeignKey(SupplierCategory, on_delete=models.PROTECT, related_name='suppliers')
     address = models.CharField(max_length=255, blank=True, null=True)
@@ -217,6 +223,7 @@ class Supplier(models.Model):
     cover_image_url = models.URLField(blank=True)
     cover_image_public_id = models.CharField(max_length=255, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    visibility = models.CharField(max_length=20, choices=VISIBILITY_CHOICES, default=VISIBILITY_GLOBAL)
     is_featured = models.BooleanField(default=False)
     created_by_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

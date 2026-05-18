@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
@@ -32,11 +33,18 @@ class SupplierViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        user = self.request.user
         category = self.request.query_params.get('category')
         state = self.request.query_params.get('state')
         city = self.request.query_params.get('city')
         status_param = self.request.query_params.get('status')
         featured = self.request.query_params.get('featured')
+
+        if not user.is_staff and not user.is_superuser:
+            queryset = queryset.filter(
+                Q(status=Supplier.STATUS_APPROVED, visibility=Supplier.VISIBILITY_GLOBAL) |
+                Q(created_by_user=user)
+            )
 
         if category:
             queryset = queryset.filter(category__slug=category)
@@ -52,7 +60,15 @@ class SupplierViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(created_by_user=self.request.user)
+        visibility = Supplier.VISIBILITY_GLOBAL if self.request.user.is_staff or self.request.user.is_superuser else Supplier.VISIBILITY_SOLO
+        serializer.save(created_by_user=self.request.user, visibility=visibility)
+
+    def perform_update(self, serializer):
+        instance = serializer.instance
+        if not self.request.user.is_staff and not self.request.user.is_superuser:
+            serializer.save(visibility=instance.visibility)
+            return
+        serializer.save()
 
 
 class WeddingSupplierViewSet(viewsets.ModelViewSet):

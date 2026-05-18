@@ -48,7 +48,7 @@ class Command(BaseCommand):
             
             # --- Convites ---
             {"name": "Papyrus Ateliê", "category": "Convites", "city": "Campina Grande", "state": "Paraíba", "phone": "(83) 99144-2769", "whatsapp": "+5583991442769", "instagram": "https://www.instagram.com/papyrusatelie/",
-             "address": "R. Acre, 225 - Liberdade, Campina Grande - PB, 58414-260", "cover_image_url": "https://res.cloudinary.com/freelancerinc/image/upload/v1778952732/Design_sem_nome_ynwhhj.jpg"},
+             "address": "R. Acre, 225 - Liberdade, Campina Grande - PB, 58414-260", "cover_image_url": "https://res.cloudinary.com/freelancerinc/image/upload/v1779104874/Design_sem_nome_1_zoy6vi.jpg"},
 
             # --- Bolo ---
             

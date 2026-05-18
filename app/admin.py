@@ -98,8 +98,8 @@ class SupplierCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Supplier)
 class SupplierAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'category', 'city', 'state', 'status', 'is_featured', 'created_by_user')
-    list_filter = ('status', 'is_featured', 'category', 'state')
+    list_display = ('id', 'name', 'category', 'city', 'state', 'status', 'visibility', 'is_featured', 'created_by_user')
+    list_filter = ('status', 'visibility', 'is_featured', 'category', 'state')
     search_fields = ('name', 'company_name', 'description', 'city', 'state', 'email', 'whatsapp')
 
 
