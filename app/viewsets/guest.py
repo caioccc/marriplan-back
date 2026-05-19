@@ -60,7 +60,7 @@ class GuestViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='download-model')
     def download_model(self, request):
         # Modelo padrão CSV
-        columns = ['name', 'phone', 'whatsapp', 'email', 'alergias', 'acompanhantes', 'observacoes']
+        columns = ['nome', 'telefone', 'whatsapp', 'email', 'alergias', 'acompanhantes', 'observacoes']
         df = pd.DataFrame(columns=columns)
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="modelo_convidados.csv"'
@@ -87,8 +87,11 @@ class GuestViewSet(viewsets.ModelViewSet):
         for idx, row in df.iterrows():
             data = row.to_dict()
             data = {k: (v if pd.notnull(v) else None) for k, v in data.items()}
+            # Normaliza nomes de colunas para os campos esperados pelo serializer
+            data['name'] = data.get('name') or data.get('nome')
+            data['phone'] = data.get('phone') or data.get('telefone')
             # Normaliza campos opcionais: se vierem None, NaN ou vazio, vira string vazia
-            for field in ['whatsapp', 'phone', 'alergias', 'acompanhantes', 'observacoes']:
+            for field in ['whatsapp', 'alergias', 'acompanhantes', 'observacoes']:
                 if field in data and (data[field] is None or str(data[field]).strip() == '' or pd.isna(data[field])):
                     data[field] = ''
             serializer = GuestSerializer(data=data)
