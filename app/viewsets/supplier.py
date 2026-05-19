@@ -116,6 +116,15 @@ class WeddingSupplierViewSet(viewsets.ModelViewSet):
             instance.is_hired = False
         instance.save(update_fields=['is_hired', 'updated_at'])
 
+    @action(detail=False, methods=['get'], url_path='dashboard')
+    def dashboard(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            'results': serializer.data,
+            'count': queryset.count(),
+        })
+
     @action(detail=False, methods=['post'], url_path='select')
     def select(self, request):
         wedding_profile = getattr(request.user, 'wedding_profile', None)
