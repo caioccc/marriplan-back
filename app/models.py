@@ -365,6 +365,7 @@ class ChecklistTask(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     days_before_event = models.IntegerField(null=True, blank=True, help_text="Dias antes do evento para agrupar no frontend")
+    notes = models.TextField(blank=True, help_text="Notas adicionais para a tarefa")
 
     def get_status_display(self):
         return dict(self.STATUS_CHOICES).get(self.status, 'Desconhecido')

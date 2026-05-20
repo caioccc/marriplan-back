@@ -194,7 +194,7 @@ class ChecklistTaskSerializer(serializers.ModelSerializer):
         model = ChecklistTask
         fields = [
             'id', 'user', 'month', 'description', 'start_date', 'due_date',
-            'priority', 'status', 'is_template', 'attachments', 'created_at', 'updated_at', 'days_before_event'
+            'priority', 'status', 'is_template', 'attachments', 'created_at', 'updated_at', 'days_before_event', 'notes'
         ]
         read_only_fields = ['user', 'created_at', 'updated_at', 'attachments', 'days_before_event']
 
