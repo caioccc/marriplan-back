@@ -7,6 +7,7 @@ from reportlab.pdfgen import canvas
 from rest_framework import (permissions, status, viewsets, filters)
 from rest_framework.decorators import (action)
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 import re
@@ -17,7 +18,13 @@ from django.conf import settings
 from app.models import (Guest, GuestConfirmationToken)
 from app.serializers import (GuestSerializer)
 from django.core.mail import send_mail
-from app.models import Notification
+from app.utils import (
+    MAX_GUESTS_PER_WEDDING,
+    create_limited_notification,
+    is_limit_reached,
+    to_sentence_case,
+    to_upper_camel_words,
+)
 
 
 class GuestViewSet(viewsets.ModelViewSet):
@@ -43,6 +50,9 @@ class GuestViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
+        wedding_profile = getattr(user, 'wedding_profile', None)
+        if wedding_profile and is_limit_reached(Guest.objects.filter(wedding_profile=wedding_profile).count(), MAX_GUESTS_PER_WEDDING):
+            raise ValidationError({'detail': 'Limite de 500 convidados atingido.'})
         if hasattr(user, 'wedding_profile'):
             serializer.save(user=user, wedding_profile=user.wedding_profile)
         else:
@@ -84,16 +94,26 @@ class GuestViewSet(viewsets.ModelViewSet):
             return Response({'detail': f'Erro ao ler arquivo: {e}'}, status=status.HTTP_400_BAD_REQUEST)
         errors = []
         created = 0
+        wedding_profile = getattr(request.user, 'wedding_profile', None)
+        current_count = Guest.objects.filter(wedding_profile=wedding_profile).count() if wedding_profile else 0
         for idx, row in df.iterrows():
+            if wedding_profile and is_limit_reached(current_count, MAX_GUESTS_PER_WEDDING):
+                errors.append({'row': idx + 2, 'error': 'Limite de 500 convidados atingido. Os registros restantes foram ignorados.'})
+                break
             data = row.to_dict()
             data = {k: (v if pd.notnull(v) else None) for k, v in data.items()}
             # Normaliza nomes de colunas para os campos esperados pelo serializer
-            data['name'] = data.get('name') or data.get('nome')
+            data['name'] = to_upper_camel_words(data.get('name') or data.get('nome'))
             data['phone'] = data.get('phone') or data.get('telefone')
             # Normaliza campos opcionais: se vierem None, NaN ou vazio, vira string vazia
-            for field in ['whatsapp', 'alergias', 'acompanhantes', 'observacoes']:
+            for field in ['whatsapp', 'acompanhantes']:
                 if field in data and (data[field] is None or str(data[field]).strip() == '' or pd.isna(data[field])):
                     data[field] = ''
+            for field in ['alergias', 'observacoes']:
+                if field in data and (data[field] is None or str(data[field]).strip() == '' or pd.isna(data[field])):
+                    data[field] = ''
+                else:
+                    data[field] = to_sentence_case(data.get(field))
             serializer = GuestSerializer(data=data)
             if serializer.is_valid():
                 # Verifica duplicidade de e-mail
@@ -108,6 +128,7 @@ class GuestViewSet(viewsets.ModelViewSet):
                 else:
                     serializer.save(user=request.user)
                 created += 1
+                current_count += 1
             else:
                 errors.append({'row': idx + 2, 'error': serializer.errors})
         if errors:
@@ -272,12 +293,12 @@ class GuestViewSet(viewsets.ModelViewSet):
             notif_message = f'O convidado "{guest.name}" confirmou presença: {status_choice}.'
             for user in users:
                 try:
-                    Notification.objects.create(
+                    create_limited_notification(
                         user=user,
                         type='info',
                         title=notif_title,
                         message=notif_message,
-                        is_read=False
+                        is_read=False,
                     )
                     # Enviar e-mail de aviso se e-mail estiver configurado
                     if user.email:

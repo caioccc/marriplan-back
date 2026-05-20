@@ -208,7 +208,7 @@ class ChecklistTaskShareSerializer(serializers.ModelSerializer):
 class GuestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guest
-        fields = ['id', 'name', 'phone', 'whatsapp', 'email', 'alergias', 'acompanhantes', 'observacoes', 'status_presenca', 'user', 'wedding_profile', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'phone', 'whatsapp', 'photo_url', 'photo_public_id', 'email', 'alergias', 'acompanhantes', 'observacoes', 'status_presenca', 'user', 'wedding_profile', 'created_at', 'updated_at']
         read_only_fields = ['id', 'user', 'wedding_profile', 'created_at', 'updated_at']
 
 
@@ -217,7 +217,7 @@ class GiftSerializer(serializers.ModelSerializer):
         model = Gift
         fields = [
             'id', 'wedding_profile', 'name', 'value', 'link', 'description', 'category',
-            'image', 'icon', 'status', 'purchased_by', 'purchase_date',
+            'image', 'image_public_id', 'icon', 'status', 'purchased_by', 'purchase_date',
             'reserved_by', 'reserved_message', 'reserved_at',
             'product_code', 'created_at', 'updated_at'
         ]

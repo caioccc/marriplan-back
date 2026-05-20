@@ -10,6 +10,7 @@ from app.serializers import (
     SupplierSerializer,
     WeddingSupplierSerializer,
 )
+from app.utils import MAX_SUPPLIERS_PER_SCOPE, is_limit_reached
 
 
 class SupplierCategoryViewSet(viewsets.ModelViewSet):
@@ -61,6 +62,10 @@ class SupplierViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         visibility = Supplier.VISIBILITY_GLOBAL if self.request.user.is_staff or self.request.user.is_superuser else Supplier.VISIBILITY_SOLO
+        if not self.request.user.is_staff and not self.request.user.is_superuser:
+            current_count = Supplier.objects.filter(created_by_user=self.request.user).count()
+            if is_limit_reached(current_count, MAX_SUPPLIERS_PER_SCOPE):
+                raise ValidationError({'detail': 'Limite de 50 fornecedores atingido.'})
         serializer.save(created_by_user=self.request.user, visibility=visibility)
 
     def perform_update(self, serializer):
@@ -106,6 +111,9 @@ class WeddingSupplierViewSet(viewsets.ModelViewSet):
         wedding_profile = getattr(self.request.user, 'wedding_profile', None)
         if not wedding_profile:
             raise ValidationError({'detail': 'Usuário sem perfil de casamento.'})
+        current_count = WeddingSupplier.objects.filter(wedding=wedding_profile).count()
+        if is_limit_reached(current_count, MAX_SUPPLIERS_PER_SCOPE):
+            raise ValidationError({'detail': 'Limite de 50 fornecedores atingido.'})
         serializer.save(wedding=wedding_profile)
 
     def perform_update(self, serializer):
@@ -139,6 +147,12 @@ class WeddingSupplierViewSet(viewsets.ModelViewSet):
             supplier = Supplier.objects.get(pk=supplier_id)
         except Supplier.DoesNotExist:
             return Response({'detail': 'Fornecedor não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+        existing_relation = WeddingSupplier.objects.filter(wedding=wedding_profile, supplier=supplier).exists()
+        if not existing_relation:
+            current_count = WeddingSupplier.objects.filter(wedding=wedding_profile).count()
+            if is_limit_reached(current_count, MAX_SUPPLIERS_PER_SCOPE):
+                return Response({'detail': 'Limite de 50 fornecedores atingido.'}, status=status.HTTP_400_BAD_REQUEST)
 
         defaults = {
             'status': request.data.get('status') or WeddingSupplier.STATUS_QUOTING,

@@ -80,6 +80,9 @@ def delete_cloudinary_image(request):
         if result.get('result') == 'ok':
             WeddingImage.objects.filter(id_cloudinary=public_id).delete()
             return Response({'status': 'deleted'})
+        elif result.get('result') == 'not found':
+            WeddingImage.objects.filter(id_cloudinary=public_id).delete()
+            return Response({'status': 'not found, but record deleted'})
         return Response({'error': 'Erro ao deletar imagem no Cloudinary.'}, status=500)
     except Exception as e:
         return Response({'error': str(e)}, status=500)

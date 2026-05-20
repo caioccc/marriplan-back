@@ -1,5 +1,8 @@
-from django.contrib import admin
+from django.utils.html import format_html
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
+from django.shortcuts import redirect
+from django.urls import reverse
 
 from app.models import CustomUser, UserSession, ChatMessage, UserSettings, Notification, UserWeddingProfile, WeddingSite, WeddingSiteHistory, WeddingImage, SupplierCategory, Supplier, WeddingSupplier
 from .models import ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, ChecklistTaskNotification, Guest, Gift, GiftListShareToken
@@ -26,10 +29,66 @@ class ChatMessageAdmin(admin.ModelAdmin):
 
 
 class UserWeddingProfileAdmin(admin.ModelAdmin):
+    change_form_template = 'admin/app/userweddingprofile/change_form.html'
     list_display = ('user', 'nome_noivo', 'nome_noiva', 'data_casamento', 'local', 'cidade', 'estado', 'created_at', 'updated_at',)
     search_fields = ('user__username', 'nome_noivo', 'nome_noiva', 'local',)
     list_filter = ('cidade', 'estado',)
     ordering = ('-created_at',)
+
+    def _related_querysets(self, obj):
+        if not obj:
+            return {
+                'guests_related': Guest.objects.none(),
+                'gifts_related': Gift.objects.none(),
+                'wedding_suppliers_related': WeddingSupplier.objects.none(),
+                'checklist_tasks_related': ChecklistTask.objects.none(),
+            }
+
+        return {
+            'guests_related': Guest.objects.filter(wedding_profile=obj).order_by('-created_at'),
+            'gifts_related': Gift.objects.filter(wedding_profile=obj).order_by('-created_at'),
+            'wedding_suppliers_related': WeddingSupplier.objects.select_related('supplier', 'supplier__category').filter(wedding=obj).order_by('-updated_at'),
+            'checklist_tasks_related': ChecklistTask.objects.filter(user=obj.user).order_by('-created_at'),
+        }
+
+    def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
+        context.update(self._related_querysets(obj))
+        return super().render_change_form(request, context, add, change, form_url, obj)
+
+    def response_change(self, request, obj):
+        bulk_entity = request.POST.get('_bulk_delete_related')
+        if not bulk_entity:
+            return super().response_change(request, obj)
+
+        selected_ids = request.POST.getlist(f'{bulk_entity}_selected_ids')
+        if not selected_ids:
+            self.message_user(request, 'Selecione ao menos um item para remover.', level=messages.WARNING)
+            return redirect(reverse('admin:app_userweddingprofile_change', args=[obj.pk]))
+
+        queryset = None
+        entity_label = None
+
+        if bulk_entity == 'guests':
+            queryset = Guest.objects.filter(wedding_profile=obj, pk__in=selected_ids)
+            entity_label = 'convidado(s)'
+        elif bulk_entity == 'gifts':
+            queryset = Gift.objects.filter(wedding_profile=obj, pk__in=selected_ids)
+            entity_label = 'presente(s)'
+        elif bulk_entity == 'wedding_suppliers':
+            queryset = WeddingSupplier.objects.filter(wedding=obj, pk__in=selected_ids)
+            entity_label = 'fornecedor(es)'
+        elif bulk_entity == 'checklist_tasks':
+            queryset = ChecklistTask.objects.filter(user=obj.user, pk__in=selected_ids)
+            entity_label = 'tarefa(s)'
+
+        if queryset is None:
+            self.message_user(request, 'Entidade inválida para remoção em lote.', level=messages.ERROR)
+            return redirect(reverse('admin:app_userweddingprofile_change', args=[obj.pk]))
+
+        deleted_count = queryset.count()
+        queryset.delete()
+        self.message_user(request, f'{deleted_count} {entity_label} removido(s) com sucesso.', level=messages.SUCCESS)
+        return redirect(reverse('admin:app_userweddingprofile_change', args=[obj.pk]))
 
 
 class WeddingSiteAdmin(admin.ModelAdmin):
@@ -98,9 +157,15 @@ class SupplierCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Supplier)
 class SupplierAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'category', 'city', 'state', 'status', 'visibility', 'is_featured', 'created_by_user')
+    list_display = ('id', 'cover_preview', 'name', 'category', 'city', 'state', 'status', 'visibility', 'is_featured', 'created_by_user')
     list_filter = ('status', 'visibility', 'is_featured', 'category', 'state')
     search_fields = ('name', 'company_name', 'description', 'city', 'state', 'email', 'whatsapp')
+
+    def cover_preview(self, obj):
+        if not obj.cover_image_url:
+          return '-'
+        return format_html('<img src="{}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;" />', obj.cover_image_url)
+    cover_preview.short_description = 'Capa'
 
 
 @admin.register(WeddingSupplier)
@@ -131,18 +196,31 @@ class ChecklistTaskNotificationAdmin(admin.ModelAdmin):
 
 @admin.register(Guest)
 class GuestAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'phone', 'whatsapp', 'email', 'alergias', 'acompanhantes', 'observacoes', 'user', 'wedding_profile', 'created_at', 'updated_at')
+    list_display = ('id', 'photo_preview', 'name', 'phone', 'whatsapp', 'email', 'alergias', 'acompanhantes', 'observacoes', 'user', 'wedding_profile', 'created_at', 'updated_at')
     search_fields = ('name', 'phone', 'whatsapp', 'email', 'alergias', 'observacoes', 'user__username', 'wedding_profile__user__username')
     list_filter = ()
     ordering = ('-created_at',)
 
+    def photo_preview(self, obj):
+        if not obj.photo_url:
+            return '-'
+        return format_html('<img src="{}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;" />', obj.photo_url)
+
+    photo_preview.short_description = 'Foto'
+
 
 @admin.register(Gift)
 class GiftAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'value', 'category', 'status', 'wedding_profile', 'purchased_by', 'purchase_date', 'created_at')
+    list_display = ('id', 'image_preview', 'name', 'value', 'category', 'status', 'wedding_profile', 'purchased_by', 'purchase_date', 'created_at')
     list_filter = ('status', 'category', 'wedding_profile')
     search_fields = ('name', 'description', 'product_code', 'wedding_profile__user__username')
     readonly_fields = ('created_at', 'updated_at')
+
+    def image_preview(self, obj):
+        if not obj.image:
+            return '-'
+        return format_html('<img src="{}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;" />', obj.image)
+    image_preview.short_description = 'Imagem'
 
 
 @admin.register(GiftListShareToken)

@@ -14,12 +14,21 @@ from rest_framework.decorators import (action)
 from rest_framework.generics import get_object_or_404
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from app.models import (Gift, GiftListShareToken)
 from app.serializers import (GiftListShareTokenSerializer, GiftSerializer)
-from app.utils import (notify_gift_status_change)
+from app.utils import (
+    MAX_GIFTS_PER_WEDDING,
+    is_limit_reached,
+    is_valid_url,
+    notify_gift_status_change,
+    normalize_gift_value,
+    to_sentence_case,
+    to_upper_camel_words,
+)
 
 
 class GiftViewSet(viewsets.ModelViewSet):
@@ -37,6 +46,9 @@ class GiftViewSet(viewsets.ModelViewSet):
         wedding_profile = getattr(user, 'wedding_profile', None)
         if not wedding_profile:
             return Response({'detail': 'Usuário sem perfil de casamento.'}, status=400)
+        current_count = Gift.objects.filter(wedding_profile=wedding_profile).count()
+        if is_limit_reached(current_count, MAX_GIFTS_PER_WEDDING):
+            raise ValidationError({'detail': 'Limite de 300 presentes atingido.'})
         data = request.data.copy()
         data['wedding_profile'] = wedding_profile.id
         serializer = self.get_serializer(data=data)
@@ -173,14 +185,11 @@ class GiftViewSet(viewsets.ModelViewSet):
             'Descrição': 'description',
             'Categoria': 'category',
             'Imagem': 'image',
+            'Imagem Public ID': 'image_public_id',
             'Status': 'status',
             'Código do Produto': 'product_code',
         }
         fields = list(header_map.values())
-        def is_url(val):
-            if not val or not isinstance(val, str):
-                return False
-            return val.startswith('http://') or val.startswith('https://')
         # Funções de normalização movidas para cá
         def normalize_status(val):
             if not val:
@@ -202,7 +211,7 @@ class GiftViewSet(viewsets.ModelViewSet):
                 errors.append(f"Linha {row_idx}: Nome do presente é obrigatório.")
             if not data.get('value') or str(data.get('value')).strip() == '':
                 errors.append(f"Linha {row_idx}: Valor é obrigatório.")
-            if data.get('image') and not is_url(data.get('image')):
+            if data.get('image') and not is_valid_url(data.get('image')):
                 errors.append(f"Linha {row_idx}: Imagem deve ser um link válido (URL).")
             # Choices válidos do model
             VALID_STATUS = [c[0] for c in Gift.STATUS_CHOICES] + [c[1] for c in Gift.STATUS_CHOICES]
@@ -214,16 +223,39 @@ class GiftViewSet(viewsets.ModelViewSet):
             if category_value and category_value not in VALID_CATEGORY:
                 errors.append(f"Linha {row_idx}: Categoria inválida.")
             return errors
+
+        def normalize_row(data):
+            data['name'] = to_upper_camel_words(data.get('name'))
+            data['description'] = to_sentence_case(data.get('description'))
+            data['value'] = normalize_gift_value(data.get('value'))
+
+            if data.get('link') and not is_valid_url(data.get('link')):
+                data['link'] = ''
+            elif data.get('link'):
+                data['link'] = str(data.get('link')).strip()
+
+            if data.get('image') and not is_valid_url(data.get('image')):
+                data['image'] = ''
+            elif data.get('image'):
+                data['image'] = str(data.get('image')).strip()
+
+            return data
+
         if file.name.endswith('.csv'):
             df = pd.read_csv(file)
             if any(col in header_map for col in df.columns):
                 df = df.rename(columns=header_map)
             created, errors = 0, []
+            current_count = Gift.objects.filter(wedding_profile=request.user.wedding_profile).count()
             for i, row in df.iterrows():
+                if is_limit_reached(current_count, MAX_GIFTS_PER_WEDDING):
+                    errors.append(f'Linha {i + 2}: Limite de 300 presentes atingido. Os registros restantes foram ignorados.')
+                    break
                 try:
                     data = dict(zip(fields, [row.get(f, '') for f in fields]))
                     data['wedding_profile'] = request.user.wedding_profile.id
                     # Normalização e validação
+                    data = normalize_row(data)
                     data['status'] = normalize_status(data.get('status'))
                     data['category'] = normalize_category(data.get('category'))
                     # Validações
@@ -238,6 +270,7 @@ class GiftViewSet(viewsets.ModelViewSet):
                     serializer.is_valid(raise_exception=True)
                     serializer.save()
                     created += 1
+                    current_count += 1
                 except Exception as e:
                     errors.append(f"Linha {i + 2}: {str(e)}")
         elif file.name.endswith('.xlsx'):
@@ -246,12 +279,17 @@ class GiftViewSet(viewsets.ModelViewSet):
             header_row = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]
             mapped_headers = [header_map.get(h, h) for h in header_row]
             created, errors = 0, []
+            current_count = Gift.objects.filter(wedding_profile=request.user.wedding_profile).count()
             for i, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+                if is_limit_reached(current_count, MAX_GIFTS_PER_WEDDING):
+                    errors.append(f'Linha {i}: Limite de 300 presentes atingido. Os registros restantes foram ignorados.')
+                    break
                 try:
                     data = dict(zip(mapped_headers, row))
                     data = {f: data.get(f, '') for f in fields}
                     data['wedding_profile'] = request.user.wedding_profile.id
                     # Normalização e validação
+                    data = normalize_row(data)
                     data['status'] = normalize_status(data.get('status'))
                     data['category'] = normalize_category(data.get('category'))
                     # Validações
@@ -266,6 +304,7 @@ class GiftViewSet(viewsets.ModelViewSet):
                     serializer.is_valid(raise_exception=True)
                     serializer.save()
                     created += 1
+                    current_count += 1
                 except Exception as e:
                     errors.append(f"Linha {i}: {str(e)}")
         else:

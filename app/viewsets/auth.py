@@ -20,11 +20,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from app.constants import (RESET_PASSWORD_EMAIL_TEMPLATE)
-from app.models import (Notification)
 from app.serializers import (LoginSerializer,
                              PreLoginSerializer,
                              RegisterSerializer, UserSerializer)
-from app.utils import (initialize_user_chat, send_mail_confirmation_email)
+from app.utils import (create_limited_notification, initialize_user_chat, send_mail_confirmation_email)
 
 
 class GoogleLoginView(APIView):
@@ -107,12 +106,12 @@ class ResetPasswordConfirmAPI(APIView):
             user.reset_password_token = None
             user.reset_password_expiry = None
             user.save()
-            Notification.objects.create(
+            create_limited_notification(
                 user=user,
                 type='success',
                 title='Senha alterada',
                 message='Sua senha foi alterada com sucesso.',
-                is_read=False
+                is_read=False,
             )
             return Response({'message': 'Senha redefinida com sucesso.'})
         except User.DoesNotExist:
@@ -245,12 +244,12 @@ def enable_2fa(request):
         if user.settings:
             user.settings.enable_2fa = True
             user.settings.save()
-        Notification.objects.create(
+        create_limited_notification(
             user=user,
             type='success',
             title='2FA ativado',
             message='A autenticação em duas etapas foi ativada com sucesso.',
-            is_read=False
+            is_read=False,
         )
         return Response({"message": "2FA ativado com sucesso."})
     return Response({"error": "Código OTP inválido."}, status=400)
@@ -266,11 +265,11 @@ def disable_2fa(request):
     if user.settings:
         user.settings.enable_2fa = False
         user.settings.save()
-    Notification.objects.create(
+    create_limited_notification(
         user=user,
         type='warning',
         title='2FA desativado',
         message='A autenticação em duas etapas foi desativada.',
-        is_read=False
+        is_read=False,
     )
     return Response({"message": "2FA desativado."})
