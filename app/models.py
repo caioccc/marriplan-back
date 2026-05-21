@@ -32,6 +32,10 @@ class CustomUser(AbstractUser):
         ("convidado", "Convidado"),
         ("admin", "Admin"),
     ]
+    WEDDING_PARTNER_ROLE_CHOICES = [
+        ("noivo", "Noivo(a)"),
+        ("noiva", "Noiva"),
+    ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="noivo")
     is_email_confirmed = models.BooleanField(default=False)
     email_confirmation_token = models.CharField(max_length=128, blank=True, null=True)
@@ -39,6 +43,7 @@ class CustomUser(AbstractUser):
     reset_password_token = models.CharField(max_length=128, blank=True, null=True)
     reset_password_expiry = models.DateTimeField(blank=True, null=True)
     settings = models.OneToOneField(UserSettings, on_delete=models.CASCADE, related_name='user', null=True, blank=True)
+    wedding_partner_role = models.CharField(max_length=10, choices=WEDDING_PARTNER_ROLE_CHOICES, blank=True, null=True)
     is_2fa_enabled = models.BooleanField(default=False)
     otp_secret = models.CharField(max_length=32, blank=True, null=True)
 

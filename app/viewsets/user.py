@@ -144,6 +144,23 @@ class NotificationViewSet(viewsets.ModelViewSet):
 class UserWeddingProfileViewSet(viewsets.ModelViewSet):
     serializer_class = UserWeddingProfileSerializer
 
+    def _sync_wedding_partner_role(self, profile):
+        user = profile.user
+        user_email = (user.email or '').strip().lower()
+        noivo_email = (profile.email_noivo or '').strip().lower()
+        noiva_email = (profile.email_noiva or '').strip().lower()
+
+        matched_roles = []
+        if user_email and user_email == noivo_email:
+            matched_roles.append('noivo')
+        if user_email and user_email == noiva_email:
+            matched_roles.append('noiva')
+
+        wedding_partner_role = matched_roles[0] if len(matched_roles) == 1 else None
+        if user.wedding_partner_role != wedding_partner_role:
+            user.wedding_partner_role = wedding_partner_role
+            user.save(update_fields=['wedding_partner_role'])
+
     def get_queryset(self):
         return UserWeddingProfile.objects.filter(user=self.request.user)
 
@@ -167,5 +184,6 @@ class UserWeddingProfileViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        profile = serializer.save()
+        self._sync_wedding_partner_role(profile)
         return Response(serializer.data)

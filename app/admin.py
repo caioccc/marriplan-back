@@ -30,10 +30,16 @@ class ChatMessageAdmin(admin.ModelAdmin):
 
 class UserWeddingProfileAdmin(admin.ModelAdmin):
     change_form_template = 'admin/app/userweddingprofile/change_form.html'
-    list_display = ('user', 'nome_noivo', 'nome_noiva', 'data_casamento', 'local', 'cidade', 'estado', 'created_at', 'updated_at',)
+    list_display = ('user','get_wedding_partner_role', 'nome_noivo', 'nome_noiva', 'data_casamento', 
+                    'local', 'cidade', 'estado', 'created_at', 'updated_at',)
     search_fields = ('user__username', 'nome_noivo', 'nome_noiva', 'local',)
     list_filter = ('cidade', 'estado',)
     ordering = ('-created_at',)
+
+    def get_wedding_partner_role(self, obj):
+        if obj.user.wedding_partner_role:
+            return obj.user.wedding_partner_role.capitalize()
+        return '-'
 
     def _related_querysets(self, obj):
         if not obj:
@@ -132,7 +138,7 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('settings',)
         }),
     )
-    list_display = UserAdmin.list_display + ('is_email_confirmed', 'is_2fa_enabled')
+    list_display = UserAdmin.list_display + ('is_email_confirmed', 'is_2fa_enabled', 'wedding_partner_role',)
     inlines = [UserWeddingProfileInline, WeddingSiteInline]
 
 
