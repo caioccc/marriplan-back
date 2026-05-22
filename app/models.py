@@ -253,8 +253,8 @@ class WeddingImage(models.Model):
 
 
 class SupplierCategory(models.Model):
-    name = models.CharField(max_length=120, unique=True)
-    slug = models.SlugField(max_length=140, unique=True)
+    name = models.CharField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, unique=True)
 
     class Meta:
         ordering = ['name']
@@ -284,17 +284,17 @@ class Supplier(models.Model):
 
     category = models.ForeignKey(SupplierCategory, on_delete=models.PROTECT, related_name='suppliers')
     address = models.CharField(max_length=255, blank=True, null=True)
-    name = models.CharField(max_length=160)
-    company_name = models.CharField(max_length=200, blank=True)
+    name = models.CharField(max_length=255)
+    company_name = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
-    phone = models.CharField(max_length=30, blank=True)
+    phone = models.CharField(max_length=50, blank=True)
     cnpj = models.CharField(max_length=20, blank=True)
-    whatsapp = models.CharField(max_length=30, blank=True)
+    whatsapp = models.CharField(max_length=50, blank=True)
     email = models.EmailField(blank=True)
-    instagram = models.CharField(max_length=120, blank=True)
-    website = models.URLField(blank=True)
-    city = models.CharField(max_length=120, blank=True)
-    state = models.CharField(max_length=60, blank=True)
+    instagram = models.CharField(max_length=255, blank=True)
+    website = models.TextField(blank=True)
+    city = models.CharField(max_length=255, blank=True)
+    state = models.CharField(max_length=255, blank=True)
     cover_image_url = models.URLField(blank=True)
     cover_image_public_id = models.CharField(max_length=255, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
