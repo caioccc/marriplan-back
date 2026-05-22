@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 
 from app.models import UserWeddingProfile, WeddingIdentity, WeddingIdentityInspiration, WeddingIdentityShareToken
 from app.serializers import WeddingIdentityInspirationSerializer
+from app.logging_utils import audit_log
 from app.services.pinterest_service import build_inspiration_query, get_images
 
 
@@ -94,6 +95,7 @@ class WeddingIdentityInspirationViewSet(viewsets.ModelViewSet):
         if source_id:
             inspiration.source_id = source_id
         inspiration.save()
+        audit_log('wedding_identity_inspiration.create', user=request.user, obj=inspiration, message='Inspiração salva')
         return Response(self.get_serializer(inspiration).data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
@@ -104,11 +106,13 @@ class WeddingIdentityInspirationViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        audit_log('wedding_identity_inspiration.update', user=request.user, obj=instance, message='Inspiração atualizada')
         return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.delete()
+        audit_log('wedding_identity_inspiration.delete', user=request.user, obj=instance, message='Inspiração removida')
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['get'], url_path='search')
@@ -123,6 +127,7 @@ class WeddingIdentityInspirationViewSet(viewsets.ModelViewSet):
             raise ValidationError('Selecione estilo e dress code para buscar inspirações.')
 
         images = get_images(query, num_images=50)
+        audit_log('wedding_identity_inspiration.search', user=request.user, message='Busca de inspirações executada', query=query, count=len(images))
         return Response({
             'query': query,
             'count': len(images),

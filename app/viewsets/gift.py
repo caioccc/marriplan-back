@@ -20,6 +20,7 @@ from rest_framework.views import APIView
 
 from app.models import (Gift, GiftListShareToken)
 from app.serializers import (GiftListShareTokenSerializer, GiftSerializer)
+from app.logging_utils import audit_log
 from app.utils import (
     MAX_GIFTS_PER_WEDDING,
     is_limit_reached,
@@ -55,6 +56,7 @@ class GiftViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         # notify_gift_status_change(serializer.instance, 'created') # Notificação para created ainda não implementada
+        audit_log('gift.create', user=request.user, obj=serializer.instance, message='Presente criado')
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -70,7 +72,12 @@ class GiftViewSet(viewsets.ModelViewSet):
                 gift.reserved_at = None
                 gift.save()
                 response.data = GiftSerializer(gift, context={'request': request}).data
+            audit_log('gift.update', user=request.user, obj=self.get_object(), message='Presente atualizado')
         return response
+
+    def perform_destroy(self, instance):
+        audit_log('gift.delete', user=self.request.user, obj=instance, message='Presente removido')
+        instance.delete()
 
     def get_queryset(self):
         user = self.request.user

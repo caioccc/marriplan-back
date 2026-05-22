@@ -25,6 +25,7 @@ from app.utils import (
     to_sentence_case,
     to_upper_camel_words,
 )
+from app.logging_utils import audit_log
 
 
 class GuestViewSet(viewsets.ModelViewSet):
@@ -54,9 +55,18 @@ class GuestViewSet(viewsets.ModelViewSet):
         if wedding_profile and is_limit_reached(Guest.objects.filter(wedding_profile=wedding_profile).count(), MAX_GUESTS_PER_WEDDING):
             raise ValidationError({'detail': 'Limite de 500 convidados atingido.'})
         if hasattr(user, 'wedding_profile'):
-            serializer.save(user=user, wedding_profile=user.wedding_profile)
+            instance = serializer.save(user=user, wedding_profile=user.wedding_profile)
         else:
-            serializer.save(user=user)
+            instance = serializer.save(user=user)
+        audit_log('guest.create', user=user, obj=instance, message='Convidado criado')
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        audit_log('guest.update', user=self.request.user, obj=instance, message='Convidado atualizado')
+
+    def perform_destroy(self, instance):
+        audit_log('guest.delete', user=self.request.user, obj=instance, message='Convidado removido')
+        instance.delete()
 
     @action(detail=False, methods=['get'], url_path='all', permission_classes=[permissions.IsAuthenticated])
     def all_guests(self, request):

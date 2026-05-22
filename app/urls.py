@@ -1,9 +1,8 @@
 from django.urls import path, include
-from knox import views as knox_views
 from rest_framework.routers import DefaultRouter
 
 from app.viewsets.auth import SignUpAPI, SignInAPI, PreLoginAPI, ConfirmEmailAPI, ResendConfirmationEmailAPI, \
-    ResetPasswordRequestAPI, ResetPasswordConfirmAPI, generate_2fa_qr, enable_2fa, disable_2fa, GoogleLoginView
+     ResetPasswordRequestAPI, ResetPasswordConfirmAPI, generate_2fa_qr, enable_2fa, disable_2fa, GoogleLoginView, LogoutAPI
 from app.viewsets.checklist import ChecklistTaskViewSet, ChecklistTaskAttachmentViewSet, ChecklistTaskShareViewSet
 from app.viewsets.gift import GiftViewSet, GiftListShareTokenView, PublicGiftListView
 from app.viewsets.guest import GuestViewSet
@@ -48,7 +47,7 @@ urlpatterns += [
     path('auth/register/', SignUpAPI.as_view(), name="knox_register"),
     path('auth/login/', SignInAPI.as_view(), name="knox_login"),
     path('auth/user/', MainUser.as_view(), name="knox_user"),
-    path('auth/logout/', knox_views.LogoutView.as_view(), name="knox_logout"),
+     path('auth/logout/', LogoutAPI.as_view(), name="knox_logout"),
     path('auth/confirm-email/', ConfirmEmailAPI.as_view(), name='confirm-email'),
     path('auth/resend-confirmation/', ResendConfirmationEmailAPI.as_view(), name='resend-confirmation'),
     path('auth/reset-password/', ResetPasswordRequestAPI.as_view(), name='reset-password'),

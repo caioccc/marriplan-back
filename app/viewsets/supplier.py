@@ -10,6 +10,7 @@ from app.serializers import (
     SupplierSerializer,
     WeddingSupplierSerializer,
 )
+from app.logging_utils import audit_log
 from app.utils import MAX_SUPPLIERS_PER_SCOPE, is_limit_reached
 
 
@@ -78,14 +79,20 @@ class SupplierViewSet(viewsets.ModelViewSet):
             current_count = Supplier.objects.filter(created_by_user=self.request.user).count()
             if is_limit_reached(current_count, MAX_SUPPLIERS_PER_SCOPE):
                 raise ValidationError({'detail': 'Limite de 50 fornecedores atingido.'})
-        serializer.save(created_by_user=self.request.user, visibility=visibility)
+        instance = serializer.save(created_by_user=self.request.user, visibility=visibility)
+        audit_log('supplier.create', user=self.request.user, obj=instance, message='Fornecedor criado')
 
     def perform_update(self, serializer):
         instance = serializer.instance
         if not self.request.user.is_staff and not self.request.user.is_superuser:
-            serializer.save(visibility=instance.visibility)
-            return
-        serializer.save()
+            updated = serializer.save(visibility=instance.visibility)
+        else:
+            updated = serializer.save()
+        audit_log('supplier.update', user=self.request.user, obj=updated, message='Fornecedor atualizado')
+
+    def perform_destroy(self, instance):
+        audit_log('supplier.delete', user=self.request.user, obj=instance, message='Fornecedor removido')
+        instance.delete()
 
 
 class WeddingSupplierViewSet(viewsets.ModelViewSet):
@@ -126,7 +133,8 @@ class WeddingSupplierViewSet(viewsets.ModelViewSet):
         current_count = WeddingSupplier.objects.filter(wedding=wedding_profile).count()
         if is_limit_reached(current_count, MAX_SUPPLIERS_PER_SCOPE):
             raise ValidationError({'detail': 'Limite de 50 fornecedores atingido.'})
-        serializer.save(wedding=wedding_profile)
+        instance = serializer.save(wedding=wedding_profile)
+        audit_log('wedding_supplier.create', user=self.request.user, obj=instance, message='Fornecedor vinculado ao casamento')
 
     def perform_update(self, serializer):
         instance = serializer.save()
@@ -135,6 +143,11 @@ class WeddingSupplierViewSet(viewsets.ModelViewSet):
         elif instance.status == WeddingSupplier.STATUS_CANCELED:
             instance.is_hired = False
         instance.save(update_fields=['is_hired', 'updated_at'])
+        audit_log('wedding_supplier.update', user=self.request.user, obj=instance, message='Vínculo de fornecedor atualizado')
+
+    def perform_destroy(self, instance):
+        audit_log('wedding_supplier.delete', user=self.request.user, obj=instance, message='Vínculo de fornecedor removido')
+        instance.delete()
 
     @action(detail=False, methods=['get'], url_path='dashboard')
     def dashboard(self, request):

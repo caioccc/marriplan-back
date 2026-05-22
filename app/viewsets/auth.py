@@ -1,6 +1,7 @@
 # app/viewsets/auth.py — endpoints de autenticação, registro, confirmação de e-mail, reset de senha, login social, 2FA.
 import base64
 import io
+import logging
 import secrets
 from http.client import CREATED
 
@@ -13,6 +14,7 @@ from django.utils import timezone
 from google.auth.transport import requests
 from google.oauth2 import id_token
 from knox.models import AuthToken
+from knox.views import LogoutView as KnoxLogoutView
 from rest_framework import (generics, permissions, serializers,
                             status)
 from rest_framework.decorators import (api_view, permission_classes)
@@ -23,7 +25,11 @@ from app.constants import (RESET_PASSWORD_EMAIL_TEMPLATE)
 from app.serializers import (LoginSerializer,
                              PreLoginSerializer,
                              RegisterSerializer, UserSerializer)
+from app.logging_utils import audit_exception, audit_log
 from app.utils import (create_limited_notification, initialize_user_chat, send_mail_confirmation_email)
+
+
+logger = logging.getLogger(__name__)
 
 
 class GoogleLoginView(APIView):
@@ -54,8 +60,11 @@ class GoogleLoginView(APIView):
                 user.is_active = True
                 user.save()
 
+            audit_log('auth.google_login', user=user, message='Login com Google concluído', created=created)
+
             return initialize_user_chat(user)
         except Exception as e:
+            audit_exception('auth.google_login', message='Falha no login com Google', exc=e, email=request.data.get('token'))
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -164,6 +173,7 @@ class SignUpAPI(generics.GenericAPIView):
         user = serializer.save()
         send_mail_confirmation_email(user)
         token = AuthToken.objects.create(user)
+        audit_log('auth.register', user=user, message='Novo cadastro concluído', email=user.email)
         return Response({
             "user": UserSerializer(user, context=self.get_serializer_context()).data,
             "token": token[1]
@@ -180,12 +190,21 @@ class PreLoginAPI(APIView):
         try:
             serializer.is_valid(raise_exception=True)
         except serializers.ValidationError as exc:
+            audit_log(
+                'auth.login',
+                status='failed',
+                message='Falha na validação inicial de login',
+                email=request.data.get('email'),
+                details=exc.detail,
+            )
             if exc.detail.get('require_2fa'):
                 return Response(exc.detail, status=status.HTTP_200_OK)
             return Response(exc.detail, status=status.HTTP_400_BAD_REQUEST)
 
         user = serializer.validated_data
-        return initialize_user_chat(user)
+        response = initialize_user_chat(user)
+        audit_log('auth.login', user=user, message='Login concluído', email=user.email)
+        return response
 
 
 class SignInAPI(generics.GenericAPIView):
@@ -196,17 +215,39 @@ class SignInAPI(generics.GenericAPIView):
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except serializers.ValidationError as exc:
+            audit_log(
+                'auth.login',
+                status='failed',
+                message='Falha no login',
+                email=request.data.get('email'),
+                details=exc.detail,
+            )
+            raise
         user = serializer.validated_data
         if user.is_2fa_enabled:
             otp_code = request.data.get('otp_code')
             if not otp_code:
+                audit_log('auth.login', status='failed', user=user, message='2FA requerido', email=user.email)
                 return Response({'require_2fa': True, 'message': '2FA requerido.'}, status=200)
             totp = pyotp.TOTP(user.otp_secret)
             if not totp.verify(otp_code):
+                audit_log('auth.login', status='failed', user=user, message='Código 2FA inválido', email=user.email)
                 return Response({'error': 'Código 2FA inválido.'}, status=400)
         # Verificar se o usuário possui alguma sessão
-        return initialize_user_chat(user)
+        response = initialize_user_chat(user)
+        audit_log('auth.login', user=user, message='Login concluído', email=user.email)
+        return response
+
+
+class LogoutAPI(KnoxLogoutView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, format=None):
+        audit_log('auth.logout', user=request.user, message='Logout concluído')
+        return super().post(request, format=format)
 
 
 @api_view(['GET'])

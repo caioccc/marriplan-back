@@ -10,6 +10,7 @@ from app.models import (Notification, UserSettings,
 from app.serializers import (NotificationSerializer, UserSerializer,
                              UserSettingsSerializer,
                              UserWeddingProfileSerializer)
+from app.logging_utils import audit_log
 
 
 class MainUser(generics.RetrieveAPIView):
@@ -53,6 +54,7 @@ class UserSettingsAPI(APIView):
         }, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        audit_log('user.settings.update', user=request.user, message='Configurações atualizadas')
         return Response(serializer.data)
 
 
@@ -91,6 +93,7 @@ class UserViewSet(viewsets.ModelViewSet):
             user.first_name = name
 
         user.save()
+        audit_log('user.profile.update', user=user, message='Perfil do usuário atualizado')
         return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
 
 
@@ -186,4 +189,5 @@ class UserWeddingProfileViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         profile = serializer.save()
         self._sync_wedding_partner_role(profile)
+        audit_log('user.wedding_profile.update', user=request.user, obj=profile, message='Perfil de casamento atualizado')
         return Response(serializer.data)

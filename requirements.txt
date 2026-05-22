@@ -119,3 +119,5 @@ pinterest-dl==1.1.2
 pinterest-dl[image]
 pinterest-dl[exif]
 pinterest-dl[metadata]
+sentry-sdk==2.60.0
+
