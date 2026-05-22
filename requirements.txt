@@ -40,7 +40,6 @@ flake8==7.1.1
 frozenlist==1.6.0
 fsspec==2025.5.1
 google-auth==2.40.3
-greenlet==3.2.2
 griffe==1.7.3
 grpcio==1.72.1
 gunicorn==23.0.0
