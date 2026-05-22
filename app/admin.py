@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.shortcuts import redirect
 from django.urls import reverse
 
-from app.models import CustomUser, UserSession, ChatMessage, UserSettings, Notification, UserWeddingProfile, WeddingIdentity, WeddingSite, WeddingSiteHistory, WeddingImage, SupplierCategory, Supplier, WeddingSupplier
+from app.models import CustomUser, UserSession, ChatMessage, UserSettings, Notification, UserWeddingProfile, WeddingIdentity, WeddingIdentityInspiration, WeddingSite, WeddingSiteHistory, WeddingImage, SupplierCategory, Supplier, WeddingSupplier
 from .models import ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, ChecklistTaskNotification, Guest, Gift, GiftListShareToken
 
 
@@ -159,6 +159,13 @@ class WeddingIdentityAdmin(admin.ModelAdmin):
     ordering = ('-updated_at',)
 
 
+class WeddingIdentityInspirationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'wedding_profile', 'title', 'selected_style', 'dress_code', 'is_favorite', 'is_liked', 'created_at')
+    list_filter = ('selected_style', 'dress_code', 'is_favorite', 'is_liked', 'created_at')
+    search_fields = ('title', 'description', 'wedding_profile__user__username', 'source_url')
+    ordering = ('-created_at',)
+
+
 class NotificationAdmin(admin.ModelAdmin):
     list_display = ('user', 'type', 'title', 'message', 'is_read', 'created_at',)
     search_fields = ('user__username', 'message')
@@ -261,6 +268,7 @@ admin.site.register(UserSettings, UserSettingsAdmin)
 admin.site.register(Notification, NotificationAdmin)
 admin.site.register(UserWeddingProfile, UserWeddingProfileAdmin)
 admin.site.register(WeddingIdentity, WeddingIdentityAdmin)
+admin.site.register(WeddingIdentityInspiration, WeddingIdentityInspirationAdmin)
 admin.site.register(WeddingSite, WeddingSiteAdmin)
 admin.site.register(WeddingSiteHistory, WeddingSiteHistoryAdmin)
 admin.site.register(WeddingImage, WeddingImageAdmin)

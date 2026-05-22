@@ -3,7 +3,7 @@ import string
 
 from app.models import (ChatMessage, CustomUser, Notification, UserSession,
                         UserSettings, UserWeddingProfile, WeddingSite,
-                        WeddingSiteHistory, WeddingImage, WeddingIdentity, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest, GuestConfirmationToken, Gift, GiftListShareToken, SupplierCategory, Supplier, WeddingSupplier, STYLE_CHOICES)
+                        WeddingSiteHistory, WeddingImage, WeddingIdentity, WeddingIdentityInspiration, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest, GuestConfirmationToken, Gift, GiftListShareToken, SupplierCategory, Supplier, WeddingSupplier, STYLE_CHOICES)
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.text import slugify
 from rest_framework import serializers
@@ -163,8 +163,27 @@ class WeddingIdentitySerializer(serializers.ModelSerializer):
         return value
 
 
+class WeddingIdentityInspirationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WeddingIdentityInspiration
+        fields = [
+            'id', 'wedding_profile', 'source_id', 'title', 'description', 'image_url', 'thumbnail_url',
+            'source_url', 'query', 'selected_style', 'dress_code', 'is_favorite', 'is_liked', 'metadata',
+            'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'wedding_profile', 'created_at', 'updated_at']
+
+    def validate_metadata(self, value):
+        if value in (None, ''):
+            return {}
+        if not isinstance(value, dict):
+            raise serializers.ValidationError('Os metadados devem ser um objeto.')
+        return value
+
+
 class UserWeddingProfileSerializer(serializers.ModelSerializer):
     wedding_identity = WeddingIdentitySerializer(read_only=True)
+    inspirations_count = serializers.SerializerMethodField()
     has_wedding_identity = serializers.SerializerMethodField()
 
     class Meta:
@@ -173,6 +192,9 @@ class UserWeddingProfileSerializer(serializers.ModelSerializer):
 
     def get_has_wedding_identity(self, obj):
         return hasattr(obj, 'wedding_identity')
+
+    def get_inspirations_count(self, obj):
+        return obj.inspirations.count() if hasattr(obj, 'inspirations') else 0
 
 
 class WeddingImageSerializer(serializers.ModelSerializer):

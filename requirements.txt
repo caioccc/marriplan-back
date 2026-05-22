@@ -67,7 +67,6 @@ networkx==3.4.2
 openpyxl==3.1.5
 orjson==3.10.18
 packaging==24.2
-pillow==11.2.1
 platformdirs==4.3.8
 pluggy==1.6.0
 portalocker==2.10.1
@@ -116,3 +115,7 @@ wrapt==1.17.2
 wsproto==1.2.0
 yarl==1.20.0
 zstandard==0.23.0
+pinterest-dl==1.1.2
+pinterest-dl[image]
+pinterest-dl[exif]
+pinterest-dl[metadata]

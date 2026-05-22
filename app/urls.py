@@ -11,6 +11,7 @@ from app.viewsets.supplier import SupplierCategoryViewSet, SupplierViewSet, Wedd
 from app.viewsets.user import NotificationViewSet, UserViewSet, UserWeddingProfileViewSet, MainUser, UserSettingsAPI
 from app.viewsets.utility import upload_cloudinary, upload_cloudinary_file, delete_cloudinary_image
 from app.viewsets.wedding_identity import WeddingIdentityViewSet
+from app.viewsets.wedding_identity_inspiration import WeddingIdentityInspirationViewSet, PublicWeddingIdentityView
 from app.viewsets.wedding import WeddingSiteViewSet, WeddingSiteHistoryViewSet, public_wedding_site
 
 router = DefaultRouter()
@@ -29,15 +30,18 @@ router.register(r'wedding-suppliers', WeddingSupplierViewSet, basename='wedding-
 
 urlpatterns = []
 
-
 notification_list = NotificationViewSet.as_view({'get': 'list', 'post': 'create'})
 notification_detail = NotificationViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'})
 wedding_identity_singleton = WeddingIdentityViewSet.as_view({
-     'get': 'list',
-     'post': 'create',
-     'patch': 'me',
-     'delete': 'me',
+    'get': 'list',
+    'post': 'create',
+    'patch': 'me',
+    'delete': 'me',
 })
+wedding_identity_inspirations_list = WeddingIdentityInspirationViewSet.as_view({'get': 'list', 'post': 'create'})
+wedding_identity_inspirations_detail = WeddingIdentityInspirationViewSet.as_view(
+    {'patch': 'partial_update', 'delete': 'destroy'})
+wedding_identity_inspirations_search = WeddingIdentityInspirationViewSet.as_view({'get': 'search'})
 
 urlpatterns += [
     path('auth/register/', SignUpAPI.as_view(), name="knox_register"),
@@ -59,7 +63,6 @@ urlpatterns += [
 
     path('user/<int:pk>/', UserViewSet.as_view({'get': 'retrieve'}), name="user"),
 
-
     path('settings/', UserSettingsAPI.as_view(), name='user-settings'),
 
     path('notifications/', notification_list, name='notification-list'),
@@ -79,13 +82,21 @@ urlpatterns += [
     path('site/<slug:slug>/', public_wedding_site, name='public-wedding-site'),
 
     path('upload-cloudinary/', upload_cloudinary, name='upload-cloudinary'),
-     path('upload-cloudinary-file/', upload_cloudinary_file, name='upload-cloudinary-file'),
+    path('upload-cloudinary-file/', upload_cloudinary_file, name='upload-cloudinary-file'),
     path('delete-cloudinary-image/', delete_cloudinary_image, name='delete-cloudinary-image'),
 
     path('gifts/share-token/', GiftListShareTokenView.as_view(), name='gift-share-token'),
     path('gifts/public/<str:token>/', PublicGiftListView.as_view(), name='public-gift-list'),
 
-     path('wedding-identity/', wedding_identity_singleton, name='wedding-identity-singleton'),
+    path('wedding-identity/', wedding_identity_singleton, name='wedding-identity-singleton'),
+    path('wedding-identity/inspirations/', wedding_identity_inspirations_list,
+         name='wedding-identity-inspirations-list'),
+    path('wedding-identity/inspirations/search/', wedding_identity_inspirations_search,
+         name='wedding-identity-inspirations-search'),
+    path('wedding-identity/inspirations/<int:pk>/', wedding_identity_inspirations_detail,
+         name='wedding-identity-inspirations-detail'),
+
+    path('public/wedding-identity/<int:wedding_profile_id>/', PublicWeddingIdentityView.as_view(), name='public-wedding-identity'),
 
     path('', include(router.urls)),
 ]

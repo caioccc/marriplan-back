@@ -203,6 +203,32 @@ class WeddingIdentity(AbstractTimeStamped):
         return f"Identidade do casamento de {self.wedding_profile.user.username}"
 
 
+class WeddingIdentityInspiration(AbstractTimeStamped):
+    wedding_profile = models.ForeignKey(
+        UserWeddingProfile,
+        on_delete=models.CASCADE,
+        related_name='inspirations',
+    )
+    source_id = models.CharField(max_length=255, blank=True, default='')
+    title = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True)
+    image_url = models.URLField(max_length=500)
+    thumbnail_url = models.URLField(max_length=500, blank=True)
+    source_url = models.URLField(max_length=500, blank=True)
+    query = models.CharField(max_length=255, blank=True)
+    selected_style = models.CharField(max_length=50, blank=True)
+    dress_code = models.CharField(max_length=50, blank=True)
+    is_favorite = models.BooleanField(default=False)
+    is_liked = models.BooleanField(default=False)
+    metadata = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ['-is_favorite', '-is_liked', '-created_at']
+
+    def __str__(self):
+        return self.title or self.image_url
+
+
 class WeddingImage(models.Model):
     url = models.URLField()
     id_cloudinary = models.CharField(max_length=255)
