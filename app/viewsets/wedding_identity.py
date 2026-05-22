@@ -1,10 +1,12 @@
+import secrets
+
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
-from app.models import UserWeddingProfile, WeddingIdentity
-from app.serializers import WeddingIdentitySerializer
+from app.models import UserWeddingProfile, WeddingIdentity, WeddingIdentityShareToken
+from app.serializers import WeddingIdentitySerializer, WeddingIdentityShareTokenSerializer
 from app.services.wedding_identity import delete_wedding_identity, get_wedding_identity, upsert_wedding_identity
 
 
@@ -84,3 +86,18 @@ class WeddingIdentityViewSet(viewsets.ModelViewSet):
         if not deleted:
             raise NotFound('Nenhuma identidade de casamento encontrada para este usuário.')
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['post'], url_path='share-token')
+    def share_token(self, request):
+        profile = self.get_profile(create=True)
+        share_token, created = WeddingIdentityShareToken.objects.get_or_create(
+            wedding_profile=profile,
+            defaults={'token': secrets.token_urlsafe(32)},
+        )
+
+        if not share_token.token:
+            share_token.token = secrets.token_urlsafe(32)
+            share_token.save(update_fields=['token', 'updated_at'])
+
+        serializer = WeddingIdentityShareTokenSerializer(share_token)
+        return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)

@@ -229,6 +229,18 @@ class WeddingIdentityInspiration(AbstractTimeStamped):
         return self.title or self.image_url
 
 
+class WeddingIdentityShareToken(AbstractTimeStamped):
+    wedding_profile = models.OneToOneField(
+        UserWeddingProfile,
+        on_delete=models.CASCADE,
+        related_name='wedding_identity_share_token',
+    )
+    token = models.CharField(max_length=64, unique=True, db_index=True)
+
+    def __str__(self):
+        return f'Token de compartilhamento da identidade de {self.wedding_profile}'
+
+
 class WeddingImage(models.Model):
     url = models.URLField()
     id_cloudinary = models.CharField(max_length=255)

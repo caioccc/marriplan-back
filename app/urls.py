@@ -38,6 +38,7 @@ wedding_identity_singleton = WeddingIdentityViewSet.as_view({
     'patch': 'me',
     'delete': 'me',
 })
+wedding_identity_share_token = WeddingIdentityViewSet.as_view({'post': 'share_token'})
 wedding_identity_inspirations_list = WeddingIdentityInspirationViewSet.as_view({'get': 'list', 'post': 'create'})
 wedding_identity_inspirations_detail = WeddingIdentityInspirationViewSet.as_view(
     {'patch': 'partial_update', 'delete': 'destroy'})
@@ -89,6 +90,7 @@ urlpatterns += [
     path('gifts/public/<str:token>/', PublicGiftListView.as_view(), name='public-gift-list'),
 
     path('wedding-identity/', wedding_identity_singleton, name='wedding-identity-singleton'),
+     path('wedding-identity/share-token/', wedding_identity_share_token, name='wedding-identity-share-token'),
     path('wedding-identity/inspirations/', wedding_identity_inspirations_list,
          name='wedding-identity-inspirations-list'),
     path('wedding-identity/inspirations/search/', wedding_identity_inspirations_search,
@@ -96,7 +98,7 @@ urlpatterns += [
     path('wedding-identity/inspirations/<int:pk>/', wedding_identity_inspirations_detail,
          name='wedding-identity-inspirations-detail'),
 
-    path('public/wedding-identity/<int:wedding_profile_id>/', PublicWeddingIdentityView.as_view(), name='public-wedding-identity'),
+     path('public/wedding-identity/<str:token>/', PublicWeddingIdentityView.as_view(), name='public-wedding-identity'),
 
     path('', include(router.urls)),
 ]

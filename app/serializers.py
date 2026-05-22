@@ -3,7 +3,7 @@ import string
 
 from app.models import (ChatMessage, CustomUser, Notification, UserSession,
                         UserSettings, UserWeddingProfile, WeddingSite,
-                        WeddingSiteHistory, WeddingImage, WeddingIdentity, WeddingIdentityInspiration, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest, GuestConfirmationToken, Gift, GiftListShareToken, SupplierCategory, Supplier, WeddingSupplier, STYLE_CHOICES)
+                        WeddingSiteHistory, WeddingImage, WeddingIdentity, WeddingIdentityInspiration, WeddingIdentityShareToken, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest, GuestConfirmationToken, Gift, GiftListShareToken, SupplierCategory, Supplier, WeddingSupplier, STYLE_CHOICES)
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.text import slugify
 from rest_framework import serializers
@@ -179,6 +179,12 @@ class WeddingIdentityInspirationSerializer(serializers.ModelSerializer):
         if not isinstance(value, dict):
             raise serializers.ValidationError('Os metadados devem ser um objeto.')
         return value
+
+
+class WeddingIdentityShareTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WeddingIdentityShareToken
+        fields = ['token', 'created_at']
 
 
 class UserWeddingProfileSerializer(serializers.ModelSerializer):

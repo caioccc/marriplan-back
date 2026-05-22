@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from app.models import UserWeddingProfile, WeddingIdentity, WeddingIdentityInspiration
+from app.models import UserWeddingProfile, WeddingIdentity, WeddingIdentityInspiration, WeddingIdentityShareToken
 from app.serializers import WeddingIdentityInspirationSerializer
 from app.services.pinterest_service import build_inspiration_query, get_images
 
@@ -134,11 +134,12 @@ class PublicWeddingIdentityView(APIView):
     # Libera o acesso para qualquer pessoa sem exigir token JWT/Sessão
     permission_classes = [AllowAny]
 
-    def get(self, request, wedding_profile_id):
+    def get(self, request, token):
         try:
-            # Busca a identidade com base no ID recebido na URL pública
-            identity = WeddingIdentity.objects.get(wedding_profile_id=wedding_profile_id)
-            inspirations = WeddingIdentityInspiration.objects.filter(wedding_profile_id=wedding_profile_id)
+            share_token = WeddingIdentityShareToken.objects.select_related('wedding_profile').get(token=token)
+            profile = share_token.wedding_profile
+            identity = WeddingIdentity.objects.get(wedding_profile=profile)
+            inspirations = WeddingIdentityInspiration.objects.filter(wedding_profile=profile)
 
             # Monta o payload de retorno contendo os dados e o mural unificados
             return Response({
@@ -148,5 +149,7 @@ class PublicWeddingIdentityView(APIView):
                 "palette": identity.palette,  # Supondo que seja um JSONField ou relacionado
                 "inspirations": WeddingIdentityInspirationSerializer(inspirations, many=True).data
             })
+        except WeddingIdentityShareToken.DoesNotExist:
+            return Response({"detail": "Não encontrado."}, status=status.HTTP_404_NOT_FOUND)
         except WeddingIdentity.DoesNotExist:
             return Response({"detail": "Não encontrado."}, status=status.HTTP_404_NOT_FOUND)
