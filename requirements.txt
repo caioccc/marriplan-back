@@ -14,6 +14,8 @@ google-auth==2.40.3
 requests==2.32.3
 pyotp==2.9.0
 qrcode==8.2
+pandas==2.2.3
+numpy==2.2.6
 openpyxl==3.1.5
 reportlab==4.4.2
 pinterest-dl==1.1.2
