@@ -10,9 +10,11 @@ from app.viewsets.guest import GuestViewSet
 from app.viewsets.supplier import SupplierCategoryViewSet, SupplierViewSet, WeddingSupplierViewSet
 from app.viewsets.user import NotificationViewSet, UserViewSet, UserWeddingProfileViewSet, MainUser, UserSettingsAPI
 from app.viewsets.utility import upload_cloudinary, upload_cloudinary_file, delete_cloudinary_image
+from app.viewsets.wedding_identity import WeddingIdentityViewSet
 from app.viewsets.wedding import WeddingSiteViewSet, WeddingSiteHistoryViewSet, public_wedding_site
 
 router = DefaultRouter()
+router.register(r'wedding-identity', WeddingIdentityViewSet, basename='wedding-identity')
 router.register(r'wedding-profile', UserWeddingProfileViewSet, basename='wedding-profile')
 router.register(r'wedding-site', WeddingSiteViewSet, basename='wedding-site')
 router.register(r'wedding-site-history', WeddingSiteHistoryViewSet, basename='wedding-site-history')
@@ -30,6 +32,12 @@ urlpatterns = []
 
 notification_list = NotificationViewSet.as_view({'get': 'list', 'post': 'create'})
 notification_detail = NotificationViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'})
+wedding_identity_singleton = WeddingIdentityViewSet.as_view({
+     'get': 'list',
+     'post': 'create',
+     'patch': 'me',
+     'delete': 'me',
+})
 
 urlpatterns += [
     path('auth/register/', SignUpAPI.as_view(), name="knox_register"),
@@ -76,6 +84,8 @@ urlpatterns += [
 
     path('gifts/share-token/', GiftListShareTokenView.as_view(), name='gift-share-token'),
     path('gifts/public/<str:token>/', PublicGiftListView.as_view(), name='public-gift-list'),
+
+     path('wedding-identity/', wedding_identity_singleton, name='wedding-identity-singleton'),
 
     path('', include(router.urls)),
 ]

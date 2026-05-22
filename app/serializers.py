@@ -3,7 +3,7 @@ import string
 
 from app.models import (ChatMessage, CustomUser, Notification, UserSession,
                         UserSettings, UserWeddingProfile, WeddingSite,
-                        WeddingSiteHistory, WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest, GuestConfirmationToken, Gift, GiftListShareToken, SupplierCategory, Supplier, WeddingSupplier)
+                        WeddingSiteHistory, WeddingImage, WeddingIdentity, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest, GuestConfirmationToken, Gift, GiftListShareToken, SupplierCategory, Supplier, WeddingSupplier, STYLE_CHOICES)
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.text import slugify
 from rest_framework import serializers
@@ -147,10 +147,32 @@ class NotificationSerializer(serializers.ModelSerializer):
         fields = ['id', 'type', 'title', 'message', 'is_read', 'created_at']
 
 
+class WeddingIdentitySerializer(serializers.ModelSerializer):
+    selected_style = serializers.ChoiceField(choices=STYLE_CHOICES, required=False, allow_blank=True)
+
+    class Meta:
+        model = WeddingIdentity
+        fields = ['id', 'wedding_profile', 'selected_style', 'wedding_size', 'dress_code', 'palette', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'wedding_profile', 'created_at', 'updated_at']
+
+    def validate_palette(self, value):
+        if value in (None, ''):
+            return []
+        if not isinstance(value, list):
+            raise serializers.ValidationError('A paleta deve ser uma lista de cores.')
+        return value
+
+
 class UserWeddingProfileSerializer(serializers.ModelSerializer):
+    wedding_identity = WeddingIdentitySerializer(read_only=True)
+    has_wedding_identity = serializers.SerializerMethodField()
+
     class Meta:
         model = UserWeddingProfile
         fields = '__all__'
+
+    def get_has_wedding_identity(self, obj):
+        return hasattr(obj, 'wedding_identity')
 
 
 class WeddingImageSerializer(serializers.ModelSerializer):

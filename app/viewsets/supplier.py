@@ -13,6 +13,14 @@ from app.serializers import (
 from app.utils import MAX_SUPPLIERS_PER_SCOPE, is_limit_reached
 
 
+from rest_framework.pagination import PageNumberPagination
+
+class TwelveItemsPagination(PageNumberPagination):
+    page_size = 12
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class SupplierCategoryViewSet(viewsets.ModelViewSet):
     queryset = SupplierCategory.objects.all()
     serializer_class = SupplierCategorySerializer
@@ -27,10 +35,12 @@ class SupplierViewSet(viewsets.ModelViewSet):
     queryset = Supplier.objects.select_related('category', 'created_by_user').all()
     serializer_class = SupplierSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    pagination_class = TwelveItemsPagination
+    
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'company_name', 'description', 'city', 'state', 'category__name']
-    ordering_fields = ['name', 'city', 'state', 'created_at', 'updated_at']
-    ordering = ['-is_featured', 'name']
+    ordering_fields = ['?']
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -58,6 +68,8 @@ class SupplierViewSet(viewsets.ModelViewSet):
         if featured in {'1', 'true', 'True'}:
             queryset = queryset.filter(is_featured=True)
 
+        if self.action == 'list':
+            return queryset.order_by('?')
         return queryset
 
     def perform_create(self, serializer):

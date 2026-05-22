@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.shortcuts import redirect
 from django.urls import reverse
 
-from app.models import CustomUser, UserSession, ChatMessage, UserSettings, Notification, UserWeddingProfile, WeddingSite, WeddingSiteHistory, WeddingImage, SupplierCategory, Supplier, WeddingSupplier
+from app.models import CustomUser, UserSession, ChatMessage, UserSettings, Notification, UserWeddingProfile, WeddingIdentity, WeddingSite, WeddingSiteHistory, WeddingImage, SupplierCategory, Supplier, WeddingSupplier
 from .models import ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, ChecklistTaskNotification, Guest, Gift, GiftListShareToken
 
 
@@ -120,6 +120,16 @@ class UserWeddingProfileInline(admin.StackedInline):
     verbose_name_plural = "Perfil de Casamento"
     fk_name = 'user'
 
+
+class WeddingIdentityInline(admin.StackedInline):
+    model = WeddingIdentity
+    can_delete = False
+    verbose_name_plural = "Identidade do Casamento"
+    fk_name = 'wedding_profile'
+
+
+UserWeddingProfileAdmin.inlines = [WeddingIdentityInline]
+
 class WeddingSiteInline(admin.StackedInline):
     model = WeddingSite
     can_delete = False
@@ -140,6 +150,13 @@ class CustomUserAdmin(UserAdmin):
     )
     list_display = UserAdmin.list_display + ('is_email_confirmed', 'is_2fa_enabled', 'wedding_partner_role',)
     inlines = [UserWeddingProfileInline, WeddingSiteInline]
+
+
+class WeddingIdentityAdmin(admin.ModelAdmin):
+    list_display = ('id', 'wedding_profile', 'selected_style', 'wedding_size', 'dress_code', 'updated_at')
+    list_filter = ('selected_style', 'wedding_size', 'dress_code', 'created_at')
+    search_fields = ('wedding_profile__user__username', 'wedding_profile__user__email')
+    ordering = ('-updated_at',)
 
 
 class NotificationAdmin(admin.ModelAdmin):
@@ -243,6 +260,7 @@ admin.site.register(ChatMessage, ChatMessageAdmin)
 admin.site.register(UserSettings, UserSettingsAdmin)
 admin.site.register(Notification, NotificationAdmin)
 admin.site.register(UserWeddingProfile, UserWeddingProfileAdmin)
+admin.site.register(WeddingIdentity, WeddingIdentityAdmin)
 admin.site.register(WeddingSite, WeddingSiteAdmin)
 admin.site.register(WeddingSiteHistory, WeddingSiteHistoryAdmin)
 admin.site.register(WeddingImage, WeddingImageAdmin)

@@ -7,6 +7,20 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 
+
+STYLE_CHOICES = [
+    ("classico", "Clássico"),
+    ("boho", "Boho"),
+    ("minimalista", "Minimalista"),
+    ("luxo", "Luxo"),
+    ("praia", "Praia"),
+    ("campo", "Campo"),
+    ("romantico", "Romântico"),
+    ("moderno", "Moderno"),
+    ("vintage", "Vintage"),
+]
+
+
 class AbstractTimeStamped(models.Model):
     """
     An abstract base class model that provides self-updating 'created' and 'modified' fields.
@@ -169,6 +183,24 @@ class UserWeddingProfile(AbstractTimeStamped):
 
     def __str__(self):
         return f"Perfil de casamento de {self.user.username}"
+
+
+class WeddingIdentity(AbstractTimeStamped):
+    wedding_profile = models.OneToOneField(
+        UserWeddingProfile,
+        on_delete=models.CASCADE,
+        related_name='wedding_identity',
+    )
+    selected_style = models.CharField(max_length=50, blank=True)
+    wedding_size = models.CharField(max_length=50, blank=True)
+    dress_code = models.CharField(max_length=50, blank=True)
+    palette = models.JSONField(default=list, blank=True)
+
+    def has_identity(self):
+        return bool(self.selected_style or self.wedding_size or self.dress_code or self.palette)
+
+    def __str__(self):
+        return f"Identidade do casamento de {self.wedding_profile.user.username}"
 
 
 class WeddingImage(models.Model):
