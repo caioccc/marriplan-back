@@ -95,6 +95,47 @@ def normalize_gift_value(value):
         return Decimal('0.00')
 
 
+def parse_money_value(value):
+    if value in (None, '', []):
+        return None
+
+    if isinstance(value, Decimal):
+        return value
+
+    if isinstance(value, bool):
+        return None
+
+    text = re.sub(r'\s+', '', str(value).strip())
+    if not text:
+        return None
+
+    text = text.replace('R$', '')
+
+    money_match = re.search(r'-?\d[\d.,]*', text)
+    if not money_match:
+        return None
+
+    money_text = money_match.group(0)
+
+    if re.fullmatch(r'-?\d{1,3}(?:\.\d{3})+(?:,\d{2})', money_text):
+        normalized = money_text.replace('.', '').replace(',', '.')
+    elif re.fullmatch(r'-?\d+,\d{2}', money_text):
+        normalized = money_text.replace(',', '.')
+    elif re.fullmatch(r'-?\d+(?:\.\d{2})', money_text):
+        normalized = money_text
+    elif re.fullmatch(r'-?\d{1,3}(?:\.\d{3})+', money_text):
+        normalized = money_text.replace('.', '')
+    elif re.fullmatch(r'-?\d+', money_text):
+        normalized = money_text
+    else:
+        normalized = money_text.replace('.', '').replace(',', '.')
+
+    try:
+        return Decimal(normalized)
+    except (InvalidOperation, ValueError):
+        return None
+
+
 def remaining_quota(current_count, limit):
     return max(limit - current_count, 0)
 

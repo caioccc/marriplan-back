@@ -1,0 +1,204 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <style>
+    .amazon-scraper-wrap {
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+
+    .amazon-scraper-hero {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .amazon-scraper-form {
+      display: grid;
+      grid-template-columns: 1fr 180px auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 24px;
+    }
+
+    .amazon-scraper-form input,
+    .amazon-scraper-form select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color, #d0d7de);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .amazon-scraper-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    .amazon-scraper-card {
+      border: 1px solid var(--border-color, #d0d7de);
+      border-radius: 16px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+
+    .amazon-scraper-card__image {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #f6f7f8;
+      object-fit: cover;
+    }
+
+    .amazon-scraper-card__body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .amazon-scraper-card__title {
+      font-weight: 700;
+      line-height: 1.3;
+      color: #111827;
+    }
+
+    .amazon-scraper-card__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .amazon-scraper-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      color: #374151;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .amazon-scraper-card__description {
+      color: #4b5563;
+      font-size: 13px;
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .amazon-scraper-card__link {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #111827;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .amazon-scraper-empty {
+      padding: 20px;
+      border: 1px dashed var(--border-color, #d0d7de);
+      border-radius: 16px;
+      background: #fafafa;
+      color: #6b7280;
+    }
+
+    @media (max-width: 900px) {
+      .amazon-scraper-form {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="amazon-scraper-wrap">
+    <div class="amazon-scraper-hero">
+      <h1>{{ page_title|default:"Amazon Scraper" }}</h1>
+      <p>Teste interno para buscar produtos da Amazon usando <strong>requests</strong> e <strong>BeautifulSoup</strong>.</p>
+    </div>
+
+    <form method="get" action="{{ search_url }}" class="amazon-scraper-form">
+      <div class="form-row">
+        <label for="id_q">Buscar produto</label>
+        <input id="id_q" type="text" name="q" value="{{ query }}" placeholder="Ex.: air fryer, cafeteira, jogo de cama" />
+      </div>
+      <div class="form-row">
+        <label for="id_limit">Limite de resultados</label>
+        <select id="id_limit" name="limit">
+          <option value="3" {% if max_results == 3 %}selected{% endif %}>3</option>
+          <option value="6" {% if max_results == 6 %}selected{% endif %}>6</option>
+          <option value="9" {% if max_results == 9 %}selected{% endif %}>9</option>
+          <option value="12" {% if max_results == 12 %}selected{% endif %}>12</option>
+        </select>
+      </div>
+      <div>
+        <button type="submit" class="default">Pesquisar</button>
+      </div>
+    </form>
+
+    {% if error_message %}
+      <div class="messagelist">
+        <ul class="errorlist"><li>{{ error_message }}</li></ul>
+      </div>
+    {% endif %}
+
+    {% if query %}
+      <p><strong>{{ results_count }}</strong> resultado(s) em <strong>{{ provider_label }}</strong> para <strong>{{ query }}</strong>.</p>
+    {% endif %}
+
+    {% if results %}
+      <div class="amazon-scraper-grid">
+        {% for product in results %}
+          <article class="amazon-scraper-card">
+            {% if product.image %}
+              <img class="amazon-scraper-card__image" src="{{ product.image }}" alt="{{ product.title }}" />
+            {% else %}
+              <div class="amazon-scraper-card__image" style="display:flex;align-items:center;justify-content:center;color:#9ca3af;">Sem imagem</div>
+            {% endif %}
+
+            <div class="amazon-scraper-card__body">
+              <div class="amazon-scraper-card__title">{{ product.title }}</div>
+
+              <div class="amazon-scraper-card__meta">
+                <span class="amazon-scraper-badge">{{ product.price }}</span>
+                <span class="amazon-scraper-badge">{{ product.category }}</span>
+              </div>
+
+              <div class="amazon-scraper-card__description">
+                {{ product.description|default:"Resumo não disponível para este item." }}
+              </div>
+
+              <a class="amazon-scraper-card__link" href="{{ product.url }}" target="_blank" rel="noopener noreferrer">
+                Abrir produto
+              </a>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% elif query %}
+      <div class="amazon-scraper-empty">
+        Nenhum resultado encontrado para a busca atual.
+      </div>
+    {% else %}
+      <div class="amazon-scraper-empty">
+        Faça uma busca para carregar os cards abaixo.
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

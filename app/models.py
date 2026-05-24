@@ -490,7 +490,7 @@ class Guest(models.Model):
     name = models.CharField(max_length=120)
     phone = models.CharField(max_length=20)
     whatsapp = models.CharField(max_length=20, blank=True)
-    photo_url = models.URLField(blank=True, null=True)
+    photo_url = models.URLField(blank=True, null=True, max_length=500, help_text='URL da foto do convidado (Cloudinary)')
     photo_public_id = models.CharField(max_length=255, blank=True)
     email = models.EmailField(blank=True, null=True)
     alergias = models.CharField(max_length=255, blank=True, null=True)
@@ -561,18 +561,18 @@ class Gift(models.Model):
         ("gift_card", "Cartão Presente"),
     ]
     wedding_profile = models.ForeignKey('UserWeddingProfile', on_delete=models.CASCADE, related_name='gifts')
-    name = models.CharField(max_length=120)
+    name = models.CharField(max_length=255)
     value = models.DecimalField(max_digits=10, decimal_places=2)
-    link = models.URLField(blank=True, null=True)
+    link = models.URLField(blank=True, null=True, max_length=2048)
     description = models.TextField(blank=True)
     category = models.CharField(max_length=30, choices=CATEGORY_CHOICES)
-    image = models.URLField(blank=True, null=True, help_text='Cloudinary image URL')
+    image = models.URLField(blank=True, null=True, help_text='Cloudinary image URL', max_length=2048)
     image_public_id = models.CharField(max_length=255, blank=True, null=True)
     icon = models.CharField(max_length=50, blank=True, help_text='Icon name or CSS class')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="available")
-    purchased_by = models.CharField(max_length=120, blank=True, help_text='Name of the person who purchased')
+    purchased_by = models.CharField(max_length=255, blank=True, help_text='Name of the person who purchased')
     purchase_date = models.DateTimeField(blank=True, null=True)
-    reserved_by = models.CharField(max_length=120, blank=True, help_text='Name of the person who reserved')
+    reserved_by = models.CharField(max_length=255, blank=True, help_text='Name of the person who reserved')
     reserved_message = models.TextField(blank=True)
     reserved_at = models.DateTimeField(blank=True, null=True)
     product_code = models.CharField(max_length=100, blank=True, help_text='Product code or identifier')
@@ -593,3 +593,26 @@ class GiftListShareToken(models.Model):
 
     def __str__(self):
         return f"Token de compartilhamento de presentes para {self.wedding_profile}"
+
+
+class ProductCatalog(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    image_url = models.URLField(blank=True, max_length=2048)
+    product_url = models.URLField(unique=True, db_index=True, max_length=2048)
+    store = models.CharField(max_length=120, db_index=True)
+    category = models.CharField(max_length=120, blank=True, db_index=True)
+    search_term = models.CharField(max_length=255, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at', 'store', 'title']
+        indexes = [
+            models.Index(fields=['store', 'category']),
+            models.Index(fields=['search_term']),
+        ]
+
+    def __str__(self):
+        return f'{self.title} - {self.store}'

@@ -8,7 +8,13 @@ from app.viewsets.gift import GiftViewSet, GiftListShareTokenView, PublicGiftLis
 from app.viewsets.guest import GuestViewSet
 from app.viewsets.supplier import SupplierCategoryViewSet, SupplierViewSet, WeddingSupplierViewSet
 from app.viewsets.user import NotificationViewSet, UserViewSet, UserWeddingProfileViewSet, MainUser, UserSettingsAPI
-from app.viewsets.utility import upload_cloudinary, upload_cloudinary_file, delete_cloudinary_image
+from app.viewsets.utility import (
+     delete_cloudinary_image,
+     featured_marketplace_products,
+     search_marketplace_products,
+     upload_cloudinary,
+     upload_cloudinary_file,
+)
 from app.viewsets.wedding_identity import WeddingIdentityViewSet
 from app.viewsets.wedding_identity_inspiration import WeddingIdentityInspirationViewSet, PublicWeddingIdentityView
 from app.viewsets.wedding import WeddingSiteViewSet, WeddingSiteHistoryViewSet, public_wedding_site
@@ -84,6 +90,8 @@ urlpatterns += [
     path('upload-cloudinary/', upload_cloudinary, name='upload-cloudinary'),
     path('upload-cloudinary-file/', upload_cloudinary_file, name='upload-cloudinary-file'),
     path('delete-cloudinary-image/', delete_cloudinary_image, name='delete-cloudinary-image'),
+     path('products/search/', search_marketplace_products, name='product-marketplace-search'),
+     path('products/featured/', featured_marketplace_products, name='product-marketplace-featured'),
 
     path('gifts/share-token/', GiftListShareTokenView.as_view(), name='gift-share-token'),
     path('gifts/public/<str:token>/', PublicGiftListView.as_view(), name='public-gift-list'),

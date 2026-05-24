@@ -144,7 +144,7 @@ class GiftViewSet(viewsets.ModelViewSet):
         ws.append([
             'Panela Elétrica de Arroz',
             199.90,
-            'https://www.magazineluiza.com.br/panela-arroz/p/123456/',
+            'https://www.amazon.com.br/panela-eletrica-de-arroz',
             'Panela elétrica para preparar arroz de forma prática e rápida.',
             'Casa',
             'https://images.unsplash.com/photo-1519864600265-abb23847ef2c',
@@ -164,7 +164,7 @@ class GiftViewSet(viewsets.ModelViewSet):
         ws.append([
             'Liquidificador Turbo',
             249.00,
-            'https://www.americanas.com.br/liquidificador/p/654321/',
+            'https://www.amazon.com.br/liquidificador-turbo',
             'Liquidificador potente com 5 velocidades.',
             'Eletrodomésticos',
             'https://images.unsplash.com/photo-1519125323398-675f0ddb6308',

@@ -20,4 +20,8 @@ openpyxl==3.1.5
 reportlab==4.4.2
 pinterest-dl==1.1.2
 sentry-sdk==2.60.0
+beautifulsoup4==4.14.3
+selenium==4.34.0
+webdriver-manager==4.0.2
+
 

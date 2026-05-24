@@ -2,10 +2,12 @@ from django.utils.html import format_html
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.shortcuts import redirect
-from django.urls import reverse
+from django.shortcuts import render
+from django.urls import path, reverse
 
 from app.models import CustomUser, UserSession, ChatMessage, UserSettings, Notification, UserWeddingProfile, WeddingIdentity, WeddingIdentityInspiration, WeddingIdentityShareToken, WeddingSite, WeddingSiteHistory, WeddingImage, SupplierCategory, Supplier, WeddingSupplier
-from .models import ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, ChecklistTaskNotification, Guest, Gift, GiftListShareToken
+from .models import ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, ChecklistTaskNotification, Guest, Gift, GiftListShareToken, ProductCatalog
+from app.services.scrapers.amazon import AmazonScraper
 
 
 class UserSettingsAdmin(admin.ModelAdmin):
@@ -266,6 +268,14 @@ class GiftListShareTokenAdmin(admin.ModelAdmin):
     readonly_fields = ('token', 'created_at')
 
 
+@admin.register(ProductCatalog)
+class ProductCatalogAdmin(admin.ModelAdmin):
+    list_display = ('title', 'store', 'category', 'search_term', 'price', 'created_at')
+    list_filter = ('store', 'category', 'created_at')
+    search_fields = ('title', 'description', 'product_url', 'search_term', 'store')
+    readonly_fields = ('created_at', 'updated_at')
+
+
 # Registre os outros modelos normalmente
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(UserSession, UserSessionAdmin)
@@ -279,3 +289,54 @@ admin.site.register(WeddingIdentityShareToken, WeddingIdentityShareTokenAdmin)
 admin.site.register(WeddingSite, WeddingSiteAdmin)
 admin.site.register(WeddingSiteHistory, WeddingSiteHistoryAdmin)
 admin.site.register(WeddingImage, WeddingImageAdmin)
+
+
+def amazon_scraper_admin_view(request):
+    query = request.GET.get('q', '').strip()
+    max_results_raw = request.GET.get('limit', '6').strip()
+
+    try:
+        max_results = max(1, min(int(max_results_raw), 12))
+    except ValueError:
+        max_results = 6
+
+    results = []
+    error_message = ''
+    service = AmazonScraper(max_results=max_results)
+
+    if query:
+        try:
+            results = service.search_products(query)
+            if not results:
+                messages.info(request, 'Nenhum produto foi encontrado na Amazon para esse termo.')
+        except Exception as exc:
+            error_message = f'Não foi possível consultar {service.marketplace_label} no momento: {exc}'
+            messages.error(request, error_message)
+
+    context = admin.site.each_context(request)
+    context.update({
+        'title': 'Amazon Scraper',
+        'page_title': 'Amazon Scraper',
+        'provider_label': service.marketplace_label,
+        'query': query,
+        'max_results': max_results,
+        'results': results,
+        'results_count': len(results),
+        'error_message': error_message,
+        'search_url': reverse('admin:amazon_scraper'),
+    })
+    return render(request, 'admin/amazon_scraper.html', context)
+
+
+_admin_get_urls = admin.site.get_urls
+
+
+def _get_admin_urls():
+    urls = _admin_get_urls()
+    custom_urls = [
+        path('amazon-scraper/', admin.site.admin_view(amazon_scraper_admin_view), name='amazon_scraper'),
+    ]
+    return custom_urls + urls
+
+
+admin.site.get_urls = _get_admin_urls
