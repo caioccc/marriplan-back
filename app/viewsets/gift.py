@@ -416,6 +416,7 @@ class PublicGiftListView(APIView):
 
     def get(self, request, token):
         token_obj = get_object_or_404(GiftListShareToken, token=token)
+        wedding_profile = token_obj.wedding_profile
         gifts = Gift.objects.filter(wedding_profile=token_obj.wedding_profile)
 
         # Filtros múltiplos por categoria
@@ -490,6 +491,11 @@ class PublicGiftListView(APIView):
             'page_size': page_size,
             'categories': categories_options,
             'status': status_options,
+            'wedding_profile': {
+                'id': wedding_profile.id,
+                'nome_noivo': wedding_profile.nome_noivo,
+                'nome_noiva': wedding_profile.nome_noiva,
+            },
         })
 
     def post(self, request, token):

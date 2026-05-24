@@ -187,6 +187,10 @@ PRODUCTS_BY_CATEGORY = {
         'fire stick',
         'fones de ouvido com cancelamento de ruido',
         'caixa de som bluetooth portátil',
+        'faqueiro',
+        'jogo faqueiro inox',
+        'jogo faqueiro premium',
+        'jogo de panelas inox',
     ],
 }
 
