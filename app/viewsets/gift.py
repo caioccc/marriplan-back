@@ -1,5 +1,6 @@
 import io
 import secrets
+from decimal import Decimal
 
 import openpyxl
 import pandas as pd
@@ -18,7 +19,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from app.models import (Gift, GiftListShareToken)
+from app.models import (Gift, GiftListShareToken, ProductCatalog)
 from app.serializers import (GiftListShareTokenSerializer, GiftSerializer)
 from app.logging_utils import audit_log
 from app.utils import (
@@ -30,6 +31,134 @@ from app.utils import (
     to_sentence_case,
     to_upper_camel_words,
 )
+
+
+ESSENTIAL_CATALOG_TO_GIFT_CATEGORY = {
+    'cozinha': 'kitchen',
+    'eletrodomesticos': 'electronics',
+    'moveis': 'furniture',
+    'quarto': 'home',
+    'banheiro': 'home',
+    'decoracao': 'decor',
+    'tecnologia': 'electronics',
+    'lavanderia': 'home',
+    'lua_de_mel': 'travel',
+    'outros': 'other',
+}
+
+
+def map_catalog_category_to_gift(category: str | None, title: str | None = None) -> str:
+    raw_value = f'{category or ""} {title or ""}'.strip().lower()
+    normalized = (category or '').strip().lower()
+
+    if normalized in ESSENTIAL_CATALOG_TO_GIFT_CATEGORY:
+        return ESSENTIAL_CATALOG_TO_GIFT_CATEGORY[normalized]
+
+    heuristics = (
+        ('kitchen', ('panela', 'cafeteira', 'liquidificador', 'frigideira', 'air fryer', 'cooktop', 'micro-ondas')),
+        ('electronics', ('tv', 'notebook', 'tablet', 'smartphone', 'fone', 'caixa de som', 'aspirador', 'ventilador')),
+        ('furniture', ('mesa', 'cadeira', 'sofa', 'sofá', 'guarda roupa', 'armario', 'armário', 'rack', 'cama')),
+        ('decor', ('quadro', 'vaso', 'espelho', 'abajur', 'luminaria', 'luminária', 'vela', 'aromatizador')),
+        ('travel', ('mala', 'mochila', 'necessaire', 'travesseiro de pescoco', 'power bank')),
+    )
+
+    for gift_category, keywords in heuristics:
+        if any(keyword in raw_value for keyword in keywords):
+            return gift_category
+
+    return 'home'
+
+
+class GenerateBasicGiftListAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        wedding_profile = getattr(user, 'wedding_profile', None)
+        if not wedding_profile:
+            return Response({'detail': 'Usuário sem perfil de casamento.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        catalog_items = list(
+            ProductCatalog.objects.filter(is_essential_template=True).order_by('store', 'category', 'title')
+        )
+        if not catalog_items:
+            return Response(
+                {'detail': 'Nenhum item essencial foi encontrado no catálogo.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        product_codes = [f'catalog-{item.id}' for item in catalog_items]
+        existing_codes = set(
+            Gift.objects.filter(wedding_profile=wedding_profile, product_code__in=product_codes)
+            .values_list('product_code', flat=True)
+        )
+
+        gifts_to_create = []
+        now = timezone.now()
+        for catalog_item in catalog_items:
+            product_code = f'catalog-{catalog_item.id}'
+            if product_code in existing_codes:
+                continue
+
+            gifts_to_create.append(
+                Gift(
+                    wedding_profile=wedding_profile,
+                    name=catalog_item.title,
+                    value=catalog_item.price or Decimal('0.00'),
+                    link=catalog_item.product_url,
+                    description=catalog_item.description,
+                    category=map_catalog_category_to_gift(catalog_item.category, catalog_item.title),
+                    image=catalog_item.image_url,
+                    image_public_id='',
+                    icon='',
+                    status='available',
+                    purchased_by='',
+                    purchase_date=None,
+                    reserved_by='',
+                    reserved_message='',
+                    reserved_at=None,
+                    product_code=product_code,
+                    created_at=now,
+                    updated_at=now,
+                )
+            )
+
+        if not gifts_to_create:
+            return Response(
+                {
+                    'created': 0,
+                    'skipped_existing': len(catalog_items),
+                    'detail': 'A lista básica já foi gerada para este casamento.',
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        current_count = Gift.objects.filter(wedding_profile=wedding_profile).count()
+        if current_count + len(gifts_to_create) > MAX_GIFTS_PER_WEDDING:
+            return Response(
+                {
+                    'detail': 'A lista básica excede o limite máximo de presentes permitido para este casamento.',
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        with transaction.atomic():
+            Gift.objects.bulk_create(gifts_to_create, batch_size=100)
+
+        audit_log(
+            'gift.generate_basic',
+            user=request.user,
+            obj=wedding_profile,
+            message=f'Lista básica gerada com {len(gifts_to_create)} presente(s)',
+        )
+        return Response(
+            {
+                'created': len(gifts_to_create),
+                'skipped_existing': len(catalog_items) - len(gifts_to_create),
+                'detail': 'Lista básica de presentes gerada com sucesso.',
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class GiftViewSet(viewsets.ModelViewSet):

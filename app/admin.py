@@ -270,8 +270,8 @@ class GiftListShareTokenAdmin(admin.ModelAdmin):
 
 @admin.register(ProductCatalog)
 class ProductCatalogAdmin(admin.ModelAdmin):
-    list_display = ('title', 'store', 'category', 'search_term', 'price', 'created_at')
-    list_filter = ('store', 'category', 'created_at')
+    list_display = ('title', 'store', 'category', 'is_essential_template', 'search_term', 'price', 'created_at')
+    list_filter = ('store', 'category', 'is_essential_template', 'created_at')
     search_fields = ('title', 'description', 'product_url', 'search_term', 'store')
     readonly_fields = ('created_at', 'updated_at')
 

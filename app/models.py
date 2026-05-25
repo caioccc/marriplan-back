@@ -596,14 +596,15 @@ class GiftListShareToken(models.Model):
 
 
 class ProductCatalog(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, verbose_name='Nome')
     description = models.TextField(blank=True)
-    price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    image_url = models.URLField(blank=True, max_length=2048)
-    product_url = models.URLField(unique=True, db_index=True, max_length=2048)
+    price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name='Preço sugerido')
+    image_url = models.URLField(blank=True, max_length=2048, verbose_name='URL da imagem')
+    product_url = models.URLField(unique=True, db_index=True, max_length=2048, verbose_name='URL do produto')
     store = models.CharField(max_length=120, db_index=True)
     category = models.CharField(max_length=120, blank=True, db_index=True)
     search_term = models.CharField(max_length=255, blank=True, db_index=True)
+    is_essential_template = models.BooleanField(default=False, db_index=True, verbose_name='Template básico')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -612,6 +613,7 @@ class ProductCatalog(models.Model):
         indexes = [
             models.Index(fields=['store', 'category']),
             models.Index(fields=['search_term']),
+            models.Index(fields=['is_essential_template']),
         ]
 
     def __str__(self):

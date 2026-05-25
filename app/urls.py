@@ -4,7 +4,12 @@ from rest_framework.routers import DefaultRouter
 from app.viewsets.auth import SignUpAPI, SignInAPI, PreLoginAPI, ConfirmEmailAPI, ResendConfirmationEmailAPI, \
      ResetPasswordRequestAPI, ResetPasswordConfirmAPI, generate_2fa_qr, enable_2fa, disable_2fa, GoogleLoginView, LogoutAPI
 from app.viewsets.checklist import ChecklistTaskViewSet, ChecklistTaskAttachmentViewSet, ChecklistTaskShareViewSet
-from app.viewsets.gift import GiftViewSet, GiftListShareTokenView, PublicGiftListView
+from app.viewsets.gift import (
+     GenerateBasicGiftListAPIView,
+     GiftListShareTokenView,
+     GiftViewSet,
+     PublicGiftListView,
+)
 from app.viewsets.guest import GuestViewSet
 from app.viewsets.supplier import SupplierCategoryViewSet, SupplierViewSet, WeddingSupplierViewSet
 from app.viewsets.user import NotificationViewSet, UserViewSet, UserWeddingProfileViewSet, MainUser, UserSettingsAPI
@@ -95,6 +100,7 @@ urlpatterns += [
 
     path('gifts/share-token/', GiftListShareTokenView.as_view(), name='gift-share-token'),
     path('gifts/public/<str:token>/', PublicGiftListView.as_view(), name='public-gift-list'),
+     path('gifts/generate-basic/', GenerateBasicGiftListAPIView.as_view(), name='gift-generate-basic'),
 
     path('wedding-identity/', wedding_identity_singleton, name='wedding-identity-singleton'),
      path('wedding-identity/share-token/', wedding_identity_share_token, name='wedding-identity-share-token'),
