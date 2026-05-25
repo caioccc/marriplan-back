@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import random
 import time
@@ -44,6 +45,11 @@ class Command(BaseCommand):
             default=2.5,
             help='Pausa máxima entre requisições.',
         )
+        parser.add_argument(
+            '--output-json',
+            default=str(Path(settings.BASE_DIR) / 'basic_products.json'),
+            help='Caminho do arquivo JSON que receberá o catálogo básico processado.',
+        )
 
     def handle(self, *args, **options):
         input_path = Path(options['input_file']).expanduser()
@@ -57,9 +63,11 @@ class Command(BaseCommand):
         limit_per_item = max(1, options['limit_per_item'])
         delay_min = max(0.0, options['delay_min'])
         delay_max = max(delay_min, options['delay_max'])
+        output_json = Path(options['output_json'])
         scraper = AmazonScraper(max_results=limit_per_item)
 
         stats = {'items': 0, 'created': 0, 'updated': 0, 'skipped': 0, 'errors': 0}
+        exported_products: dict[str, dict] = {}
 
         self.stdout.write(self.style.SUCCESS(f'Populando catálogo básico com {len(terms)} item(ns).'))
 
@@ -89,7 +97,11 @@ class Command(BaseCommand):
                 stats['updated'] += 1
                 self.stdout.write(self.style.SUCCESS(f'Atualizado: {product.title}'))
 
+            exported_products[product.product_url] = self._serialize_product(product)
+
             self._sleep_between_requests(delay_min, delay_max)
+
+        self._write_json(output_json, exported_products)
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -140,6 +152,33 @@ class Command(BaseCommand):
         if not text or 'indisponivel' in text.lower():
             return None
         return parse_money_value(text)
+
+    def _serialize_product(self, product: ProductCatalog) -> dict[str, object]:
+        return {
+            'title': product.title,
+            'description': product.description,
+            'price': str(product.price) if product.price is not None else None,
+            'image_url': product.image_url,
+            'product_url': product.product_url,
+            'store': product.store,
+            'category': product.category,
+            'search_term': product.search_term,
+            'is_essential_template': product.is_essential_template,
+            'created_at': product.created_at.isoformat() if product.created_at else None,
+            'updated_at': product.updated_at.isoformat() if product.updated_at else None,
+        }
+
+    def _write_json(self, output_path: Path, exported_products: dict[str, dict]) -> None:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        payload = sorted(
+            exported_products.values(),
+            key=lambda item: (item.get('store') or '', item.get('category') or '', item.get('title') or ''),
+        )
+
+        with output_path.open('w', encoding='utf-8') as json_file:
+            json.dump(payload, json_file, ensure_ascii=False, indent=2)
+
+        self.stdout.write(self.style.SUCCESS(f'JSON do catálogo salvo em {output_path}'))
 
     def _clean_text(self, value) -> str:
         return ' '.join(str(value or '').split()).strip()
