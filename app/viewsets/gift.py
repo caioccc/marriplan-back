@@ -1,12 +1,15 @@
 import io
 import secrets
+import re
 from decimal import Decimal
+from urllib.parse import parse_qs, unquote, urlparse
 
 import openpyxl
 import pandas as pd
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.text import slugify
 from django.db import transaction
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -47,6 +50,9 @@ ESSENTIAL_CATALOG_TO_GIFT_CATEGORY = {
 }
 
 
+AMAZON_PRODUCT_PATTERN = re.compile(r'/(?:dp|gp/product|gp/aw/d|product)/([A-Z0-9]{10})(?:[/?]|$)', re.IGNORECASE)
+
+
 def map_catalog_category_to_gift(category: str | None, title: str | None = None) -> str:
     raw_value = f'{category or ""} {title or ""}'.strip().lower()
     normalized = (category or '').strip().lower()
@@ -69,6 +75,35 @@ def map_catalog_category_to_gift(category: str | None, title: str | None = None)
     return 'home'
 
 
+def build_gift_product_code(*, name: str | None = None, link: str | None = None, category: str | None = None) -> str:
+    source = str(link or name or category or '').strip().lower()
+    if not source:
+        return ''
+
+    if link:
+        for candidate in (source, unquote(source)):
+            match = AMAZON_PRODUCT_PATTERN.search(candidate)
+            if match:
+                return f'amazon-asin-{match.group(1).lower()}'
+
+        parsed = urlparse(source)
+        query_params = parse_qs(parsed.query)
+        for key in ('url', 'u', 'redirect', 'dest', 'destination'):
+            target = query_params.get(key, [None])[0]
+            if not target:
+                continue
+            nested_code = build_gift_product_code(link=unquote(target))
+            if nested_code:
+                return nested_code
+
+        normalized = f'{parsed.netloc}{parsed.path}'.strip('/') or source
+        normalized = slugify(normalized)
+        return f'url-{normalized[:90]}' if normalized else ''
+
+    normalized_name = slugify(source)
+    return f'name-{normalized_name[:90]}' if normalized_name else ''
+
+
 class GenerateBasicGiftListAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -87,16 +122,35 @@ class GenerateBasicGiftListAPIView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        product_codes = [f'catalog-{item.id}' for item in catalog_items]
         existing_codes = set(
-            Gift.objects.filter(wedding_profile=wedding_profile, product_code__in=product_codes)
+            Gift.objects.filter(wedding_profile=wedding_profile)
+            .exclude(product_code='')
             .values_list('product_code', flat=True)
+        )
+        existing_codes.update(
+            filter(
+                None,
+                (
+                    build_gift_product_code(
+                        name=gift.name,
+                        link=gift.link,
+                        category=gift.category,
+                    )
+                    for gift in Gift.objects.filter(wedding_profile=wedding_profile)
+                ),
+            )
         )
 
         gifts_to_create = []
         now = timezone.now()
         for catalog_item in catalog_items:
-            product_code = f'catalog-{catalog_item.id}'
+            product_code = build_gift_product_code(
+                name=catalog_item.title,
+                link=catalog_item.product_url,
+                category=catalog_item.category,
+            )
+            if not product_code:
+                continue
             if product_code in existing_codes:
                 continue
 
@@ -122,6 +176,7 @@ class GenerateBasicGiftListAPIView(APIView):
                     updated_at=now,
                 )
             )
+            existing_codes.add(product_code)
 
         if not gifts_to_create:
             return Response(
@@ -143,7 +198,7 @@ class GenerateBasicGiftListAPIView(APIView):
             )
 
         with transaction.atomic():
-            Gift.objects.bulk_create(gifts_to_create, batch_size=100)
+            Gift.objects.bulk_create(gifts_to_create, batch_size=100, ignore_conflicts=True)
 
         audit_log(
             'gift.generate_basic',
@@ -181,7 +236,24 @@ class GiftViewSet(viewsets.ModelViewSet):
             raise ValidationError({'detail': 'Limite de 300 presentes atingido.'})
         data = request.data.copy()
         data['wedding_profile'] = wedding_profile.id
-        serializer = self.get_serializer(data=data)
+        product_code = data.get('product_code') or build_gift_product_code(
+            name=data.get('name'),
+            link=data.get('link'),
+            category=data.get('category'),
+        )
+        if product_code:
+            existing_gift = Gift.objects.filter(
+                wedding_profile=wedding_profile,
+                product_code=product_code,
+            ).first()
+            if existing_gift:
+                return Response(
+                    GiftSerializer(existing_gift, context={'request': request}).data,
+                    status=status.HTTP_200_OK,
+                )
+
+        data['product_code'] = product_code
+        serializer = self.get_serializer(data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         # notify_gift_status_change(serializer.instance, 'created') # Notificação para created ainda não implementada
@@ -374,6 +446,13 @@ class GiftViewSet(viewsets.ModelViewSet):
                 data['image'] = ''
             elif data.get('image'):
                 data['image'] = str(data.get('image')).strip()
+
+            if not data.get('product_code'):
+                data['product_code'] = build_gift_product_code(
+                    name=data.get('name'),
+                    link=data.get('link'),
+                    category=data.get('category'),
+                )
 
             return data
 

@@ -1,8 +1,10 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Q
 import uuid
 from datetime import timedelta
+from urllib.parse import urlparse
 from django.utils import timezone
 from django.utils.text import slugify
 
@@ -575,9 +577,32 @@ class Gift(models.Model):
     reserved_by = models.CharField(max_length=255, blank=True, help_text='Name of the person who reserved')
     reserved_message = models.TextField(blank=True)
     reserved_at = models.DateTimeField(blank=True, null=True)
-    product_code = models.CharField(max_length=100, blank=True, help_text='Product code or identifier')
+    product_code = models.CharField(max_length=100, blank=True, null=True, default='', help_text='Product code or identifier')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['wedding_profile', 'product_code'],
+                condition=~Q(product_code=''),
+                name='unique_gift_product_code_per_wedding',
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self.product_code:
+            source = str(self.link or self.name or '').strip().lower()
+            if source:
+                if self.link:
+                    parsed = urlparse(source)
+                    normalized = f'{parsed.netloc}{parsed.path}'.strip('/') or source
+                    self.product_code = f'url-{slugify(normalized)[:90]}'
+                else:
+                    normalized_name = slugify(source)
+                    self.product_code = f'name-{normalized_name[:90]}' if normalized_name else ''
+
+        super().save(*args, **kwargs)
 
     def get_status_display(self):
         return dict(self.STATUS_CHOICES).get(self.status, 'Desconhecido')

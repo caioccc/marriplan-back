@@ -16,7 +16,13 @@ class ChecklistTaskViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return ChecklistTask.objects.filter(user=self.request.user)
+        return ChecklistTask.objects.filter(user=self.request.user).order_by(
+            'month',
+            'due_date',
+            'start_date',
+            'created_at',
+            'id',
+        )
 
     def perform_create(self, serializer):
         current_count = ChecklistTask.objects.filter(user=self.request.user).count()

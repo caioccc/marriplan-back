@@ -263,6 +263,8 @@ class GuestSerializer(serializers.ModelSerializer):
 
 
 class GiftSerializer(serializers.ModelSerializer):
+    product_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, default='')
+
     class Meta:
         model = Gift
         fields = [

@@ -1,3 +1,5 @@
+import random
+
 from django.db.models import Q
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.exceptions import ValidationError
@@ -43,6 +45,24 @@ class SupplierViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'company_name', 'description', 'city', 'state', 'category__name']
     ordering_fields = ['?']
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        seed = request.query_params.get('seed')
+
+        if seed:
+            items = list(queryset)
+            random.Random(seed).shuffle(items)
+            page = self.paginate_queryset(items)
+        else:
+            page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     def get_queryset(self):
         queryset = super().get_queryset()
         user = self.request.user
@@ -69,8 +89,6 @@ class SupplierViewSet(viewsets.ModelViewSet):
         if featured in {'1', 'true', 'True'}:
             queryset = queryset.filter(is_featured=True)
 
-        if self.action == 'list':
-            return queryset.order_by('?')
         return queryset
 
     def perform_create(self, serializer):
