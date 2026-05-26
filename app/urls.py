@@ -1,18 +1,31 @@
 from django.urls import path, include
-from knox import views as knox_views
 from rest_framework.routers import DefaultRouter
 
 from app.viewsets.auth import SignUpAPI, SignInAPI, PreLoginAPI, ConfirmEmailAPI, ResendConfirmationEmailAPI, \
-    ResetPasswordRequestAPI, ResetPasswordConfirmAPI, generate_2fa_qr, enable_2fa, disable_2fa, GoogleLoginView
-from app.viewsets.chat import delete_all_sessions, delete_all_messages, ChatMessageViewSet, UserSessionViewSet
+     ResetPasswordRequestAPI, ResetPasswordConfirmAPI, generate_2fa_qr, enable_2fa, disable_2fa, GoogleLoginView, LogoutAPI
 from app.viewsets.checklist import ChecklistTaskViewSet, ChecklistTaskAttachmentViewSet, ChecklistTaskShareViewSet
-from app.viewsets.gift import GiftViewSet, GiftListShareTokenView, PublicGiftListView
+from app.viewsets.gift import (
+     GenerateBasicGiftListAPIView,
+     GiftListShareTokenView,
+     GiftViewSet,
+     PublicGiftListView,
+)
 from app.viewsets.guest import GuestViewSet
+from app.viewsets.supplier import SupplierCategoryViewSet, SupplierViewSet, WeddingSupplierViewSet
 from app.viewsets.user import NotificationViewSet, UserViewSet, UserWeddingProfileViewSet, MainUser, UserSettingsAPI
-from app.viewsets.utility import upload_cloudinary, delete_cloudinary_image
+from app.viewsets.utility import (
+     delete_cloudinary_image,
+     featured_marketplace_products,
+     search_marketplace_products,
+     upload_cloudinary,
+     upload_cloudinary_file,
+)
+from app.viewsets.wedding_identity import WeddingIdentityViewSet
+from app.viewsets.wedding_identity_inspiration import WeddingIdentityInspirationViewSet, PublicWeddingIdentityView
 from app.viewsets.wedding import WeddingSiteViewSet, WeddingSiteHistoryViewSet, public_wedding_site
 
 router = DefaultRouter()
+router.register(r'wedding-identity', WeddingIdentityViewSet, basename='wedding-identity')
 router.register(r'wedding-profile', UserWeddingProfileViewSet, basename='wedding-profile')
 router.register(r'wedding-site', WeddingSiteViewSet, basename='wedding-site')
 router.register(r'wedding-site-history', WeddingSiteHistoryViewSet, basename='wedding-site-history')
@@ -21,40 +34,31 @@ router.register(r'checklist-attachments', ChecklistTaskAttachmentViewSet, basena
 router.register(r'checklist-shares', ChecklistTaskShareViewSet, basename='checklisttaskshare')
 router.register(r'guests', GuestViewSet, basename='guest')
 router.register(r'gifts', GiftViewSet, basename='gift')
+router.register(r'supplier-categories', SupplierCategoryViewSet, basename='supplier-category')
+router.register(r'suppliers', SupplierViewSet, basename='supplier')
+router.register(r'wedding-suppliers', WeddingSupplierViewSet, basename='wedding-supplier')
 
 urlpatterns = []
 
-user_session_list = UserSessionViewSet.as_view({
-    'get': 'list',
-    'post': 'create',
-})
-
-user_session_detail = UserSessionViewSet.as_view({
-    'get': 'retrieve',
-    'put': 'update',
-    'delete': 'destroy'
-})
-
-chat_message_list = ChatMessageViewSet.as_view({
-    'get': 'list',
-    'post': 'create',
-})
-
-chat_message_detail = ChatMessageViewSet.as_view({
-    'get': 'retrieve',
-    'put': 'update',
-    'patch': 'partial_update',
-    'delete': 'destroy',
-})
-
 notification_list = NotificationViewSet.as_view({'get': 'list', 'post': 'create'})
 notification_detail = NotificationViewSet.as_view({'get': 'retrieve', 'delete': 'destroy'})
+wedding_identity_singleton = WeddingIdentityViewSet.as_view({
+    'get': 'list',
+    'post': 'create',
+    'patch': 'me',
+    'delete': 'me',
+})
+wedding_identity_share_token = WeddingIdentityViewSet.as_view({'post': 'share_token'})
+wedding_identity_inspirations_list = WeddingIdentityInspirationViewSet.as_view({'get': 'list', 'post': 'create'})
+wedding_identity_inspirations_detail = WeddingIdentityInspirationViewSet.as_view(
+    {'patch': 'partial_update', 'delete': 'destroy'})
+wedding_identity_inspirations_search = WeddingIdentityInspirationViewSet.as_view({'get': 'search'})
 
 urlpatterns += [
     path('auth/register/', SignUpAPI.as_view(), name="knox_register"),
     path('auth/login/', SignInAPI.as_view(), name="knox_login"),
     path('auth/user/', MainUser.as_view(), name="knox_user"),
-    path('auth/logout/', knox_views.LogoutView.as_view(), name="knox_logout"),
+     path('auth/logout/', LogoutAPI.as_view(), name="knox_logout"),
     path('auth/confirm-email/', ConfirmEmailAPI.as_view(), name='confirm-email'),
     path('auth/resend-confirmation/', ResendConfirmationEmailAPI.as_view(), name='resend-confirmation'),
     path('auth/reset-password/', ResetPasswordRequestAPI.as_view(), name='reset-password'),
@@ -69,22 +73,6 @@ urlpatterns += [
     path('user/update-profile/', UserViewSet.as_view({'patch': 'update_profile'}), name='update-profile'),
 
     path('user/<int:pk>/', UserViewSet.as_view({'get': 'retrieve'}), name="user"),
-
-    path('sessions/', user_session_list, name='user-session-list'),
-    path('sessions/<int:pk>/', user_session_detail, name='user-session-detail'),
-    path('sessions/delete-by-session-id/<str:session_id>/',
-         UserSessionViewSet.as_view({'delete': 'delete_by_session_id'}),
-         name='delete-by-session-id'),
-    path('sessions/<str:session_id>/', ChatMessageViewSet.as_view({'patch': 'update_title'}),
-         name='update-title'),
-
-    path('clear-sessions/delete-all/', delete_all_sessions, name='delete-all-sessions'),
-
-    path('messages/', chat_message_list, name='chat-message-list'),
-    path('messages/<int:pk>/', chat_message_detail, name='chat-message-detail'),
-    path('messages/send-message/', ChatMessageViewSet.as_view({'post': 'send_message'}), name='send-message'),
-    path('messages/stream-message/', ChatMessageViewSet.as_view({'post': 'stream_message'}), name='stream-message'),
-    path('messages/delete-all/', delete_all_messages, name='delete-all-messages'),
 
     path('settings/', UserSettingsAPI.as_view(), name='user-settings'),
 
@@ -105,10 +93,25 @@ urlpatterns += [
     path('site/<slug:slug>/', public_wedding_site, name='public-wedding-site'),
 
     path('upload-cloudinary/', upload_cloudinary, name='upload-cloudinary'),
+    path('upload-cloudinary-file/', upload_cloudinary_file, name='upload-cloudinary-file'),
     path('delete-cloudinary-image/', delete_cloudinary_image, name='delete-cloudinary-image'),
+     path('products/search/', search_marketplace_products, name='product-marketplace-search'),
+     path('products/featured/', featured_marketplace_products, name='product-marketplace-featured'),
 
     path('gifts/share-token/', GiftListShareTokenView.as_view(), name='gift-share-token'),
     path('gifts/public/<str:token>/', PublicGiftListView.as_view(), name='public-gift-list'),
+     path('gifts/generate-basic/', GenerateBasicGiftListAPIView.as_view(), name='gift-generate-basic'),
+
+    path('wedding-identity/', wedding_identity_singleton, name='wedding-identity-singleton'),
+     path('wedding-identity/share-token/', wedding_identity_share_token, name='wedding-identity-share-token'),
+    path('wedding-identity/inspirations/', wedding_identity_inspirations_list,
+         name='wedding-identity-inspirations-list'),
+    path('wedding-identity/inspirations/search/', wedding_identity_inspirations_search,
+         name='wedding-identity-inspirations-search'),
+    path('wedding-identity/inspirations/<int:pk>/', wedding_identity_inspirations_detail,
+         name='wedding-identity-inspirations-detail'),
+
+     path('public/wedding-identity/<str:token>/', PublicWeddingIdentityView.as_view(), name='public-wedding-identity'),
 
     path('', include(router.urls)),
 ]

@@ -13,6 +13,7 @@ from app.models import (WeddingSite,
 from app.serializers import (UserWeddingProfileSerializer,
                              WeddingSiteHistorySerializer,
                              WeddingSiteSerializer)
+from app.logging_utils import audit_log
 from app.utils import notify_user_wedding_site
 
 
@@ -69,6 +70,7 @@ class WeddingSiteViewSet(viewsets.ModelViewSet):
         WeddingSiteHistory.objects.create(site=site, action='create', performed_by=user,
                                           snapshot=WeddingSiteSerializer(site).data)
         notify_user_wedding_site(request.user, 'create')
+        audit_log('wedding_site.create', user=request.user, obj=site, message='Site de casamento criado')
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['post'])
@@ -81,6 +83,7 @@ class WeddingSiteViewSet(viewsets.ModelViewSet):
         site.save()
         WeddingSiteHistory.objects.create(site=site, action='publish', performed_by=request.user,
                                           snapshot=WeddingSiteSerializer(site).data)
+        audit_log('wedding_site.publish', user=request.user, obj=site, message='Site publicado')
         return Response({'status': 'published'})
 
     @action(detail=False, methods=['post'])
@@ -92,6 +95,7 @@ class WeddingSiteViewSet(viewsets.ModelViewSet):
         site.save()
         WeddingSiteHistory.objects.create(site=site, action='unpublish', performed_by=request.user,
                                           snapshot=WeddingSiteSerializer(site).data)
+        audit_log('wedding_site.unpublish', user=request.user, obj=site, message='Site despublicado')
         return Response({'status': 'draft'})
 
     @action(detail=False, methods=['get'])
@@ -133,6 +137,7 @@ class WeddingSiteViewSet(viewsets.ModelViewSet):
         WeddingSiteHistory.objects.create(site=instance, action='edit', performed_by=request.user,
                                           snapshot=WeddingSiteSerializer(instance).data)
         notify_user_wedding_site(request.user, 'update')
+        audit_log('wedding_site.update', user=request.user, obj=instance, message='Site atualizado')
         return Response(serializer.data)
 
 

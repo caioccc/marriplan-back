@@ -1,6 +1,26 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Q
+import uuid
+from datetime import timedelta
+from urllib.parse import urlparse
+from django.utils import timezone
+from django.utils.text import slugify
+
+
+
+STYLE_CHOICES = [
+    ("classico", "Clássico"),
+    ("boho", "Boho"),
+    ("minimalista", "Minimalista"),
+    ("luxo", "Luxo"),
+    ("praia", "Praia"),
+    ("campo", "Campo"),
+    ("romantico", "Romântico"),
+    ("moderno", "Moderno"),
+    ("vintage", "Vintage"),
+]
 
 
 class AbstractTimeStamped(models.Model):
@@ -28,6 +48,10 @@ class CustomUser(AbstractUser):
         ("convidado", "Convidado"),
         ("admin", "Admin"),
     ]
+    WEDDING_PARTNER_ROLE_CHOICES = [
+        ("noivo", "Noivo(a)"),
+        ("noiva", "Noiva"),
+    ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="noivo")
     is_email_confirmed = models.BooleanField(default=False)
     email_confirmation_token = models.CharField(max_length=128, blank=True, null=True)
@@ -35,6 +59,7 @@ class CustomUser(AbstractUser):
     reset_password_token = models.CharField(max_length=128, blank=True, null=True)
     reset_password_expiry = models.DateTimeField(blank=True, null=True)
     settings = models.OneToOneField(UserSettings, on_delete=models.CASCADE, related_name='user', null=True, blank=True)
+    wedding_partner_role = models.CharField(max_length=10, choices=WEDDING_PARTNER_ROLE_CHOICES, blank=True, null=True)
     is_2fa_enabled = models.BooleanField(default=False)
     otp_secret = models.CharField(max_length=32, blank=True, null=True)
 
@@ -119,12 +144,14 @@ class UserWeddingProfile(AbstractTimeStamped):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wedding_profile')
     # Dados do noivo(a)
     nome_noivo = models.CharField(max_length=100, blank=True)
+    telefone_noivo = models.CharField(max_length=20, blank=True)
     descricao_noivo = models.TextField(blank=True)
     facebook_noivo = models.CharField(max_length=255, blank=True)
     instagram_noivo = models.CharField(max_length=255, blank=True)
     email_noivo = models.EmailField(blank=True)
 
     nome_noiva = models.CharField(max_length=100, blank=True)
+    telefone_noiva = models.CharField(max_length=20, blank=True)
     descricao_noiva = models.TextField(blank=True)
     facebook_noiva = models.CharField(max_length=255, blank=True)
     instagram_noiva = models.CharField(max_length=255, blank=True)
@@ -160,6 +187,62 @@ class UserWeddingProfile(AbstractTimeStamped):
         return f"Perfil de casamento de {self.user.username}"
 
 
+class WeddingIdentity(AbstractTimeStamped):
+    wedding_profile = models.OneToOneField(
+        UserWeddingProfile,
+        on_delete=models.CASCADE,
+        related_name='wedding_identity',
+    )
+    selected_style = models.CharField(max_length=50, blank=True)
+    wedding_size = models.CharField(max_length=50, blank=True)
+    dress_code = models.CharField(max_length=50, blank=True)
+    palette = models.JSONField(default=list, blank=True)
+
+    def has_identity(self):
+        return bool(self.selected_style or self.wedding_size or self.dress_code or self.palette)
+
+    def __str__(self):
+        return f"Identidade do casamento de {self.wedding_profile.user.username}"
+
+
+class WeddingIdentityInspiration(AbstractTimeStamped):
+    wedding_profile = models.ForeignKey(
+        UserWeddingProfile,
+        on_delete=models.CASCADE,
+        related_name='inspirations',
+    )
+    source_id = models.CharField(max_length=255, blank=True, default='')
+    title = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True)
+    image_url = models.URLField(max_length=500)
+    thumbnail_url = models.URLField(max_length=500, blank=True)
+    source_url = models.URLField(max_length=500, blank=True)
+    query = models.CharField(max_length=255, blank=True)
+    selected_style = models.CharField(max_length=50, blank=True)
+    dress_code = models.CharField(max_length=50, blank=True)
+    is_favorite = models.BooleanField(default=False)
+    is_liked = models.BooleanField(default=False)
+    metadata = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ['-is_favorite', '-is_liked', '-created_at']
+
+    def __str__(self):
+        return self.title or self.image_url
+
+
+class WeddingIdentityShareToken(AbstractTimeStamped):
+    wedding_profile = models.OneToOneField(
+        UserWeddingProfile,
+        on_delete=models.CASCADE,
+        related_name='wedding_identity_share_token',
+    )
+    token = models.CharField(max_length=64, unique=True, db_index=True)
+
+    def __str__(self):
+        return f'Token de compartilhamento da identidade de {self.wedding_profile}'
+
+
 class WeddingImage(models.Model):
     url = models.URLField()
     id_cloudinary = models.CharField(max_length=255)
@@ -169,6 +252,109 @@ class WeddingImage(models.Model):
 
     def __str__(self):
         return f"{self.folder or ''} - {self.id_cloudinary}"
+
+
+class SupplierCategory(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, unique=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
+class Supplier(models.Model):
+    STATUS_APPROVED = 'APPROVED'
+    STATUS_PENDING = 'PENDING'
+    STATUS_CHOICES = [
+        (STATUS_APPROVED, 'Aprovado'),
+        (STATUS_PENDING, 'Pendente'),
+    ]
+    VISIBILITY_GLOBAL = 'GLOBAL'
+    VISIBILITY_SOLO = 'SOLO'
+    VISIBILITY_CHOICES = [
+        (VISIBILITY_GLOBAL, 'Global'),
+        (VISIBILITY_SOLO, 'Solo'),
+    ]
+
+    category = models.ForeignKey(SupplierCategory, on_delete=models.PROTECT, related_name='suppliers')
+    address = models.CharField(max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=255)
+    company_name = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True)
+    phone = models.CharField(max_length=50, blank=True)
+    cnpj = models.CharField(max_length=20, blank=True)
+    whatsapp = models.CharField(max_length=50, blank=True)
+    email = models.EmailField(blank=True)
+    instagram = models.CharField(max_length=255, blank=True)
+    website = models.TextField(blank=True)
+    city = models.CharField(max_length=255, blank=True)
+    state = models.CharField(max_length=255, blank=True)
+    cover_image_url = models.URLField(blank=True)
+    cover_image_public_id = models.CharField(max_length=255, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    visibility = models.CharField(max_length=20, choices=VISIBILITY_CHOICES, default=VISIBILITY_GLOBAL)
+    is_featured = models.BooleanField(default=False)
+    created_by_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_suppliers',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-is_featured', 'name']
+
+    def __str__(self):
+        return self.name
+
+
+class WeddingSupplier(models.Model):
+    STATUS_QUOTING = 'QUOTING'
+    STATUS_NEGOTIATING = 'NEGOTIATING'
+    STATUS_HIRED = 'HIRED'
+    STATUS_PAID = 'PAID'
+    STATUS_CANCELED = 'CANCELED'
+    STATUS_CHOICES = [
+        (STATUS_QUOTING, 'Cotando'),
+        (STATUS_NEGOTIATING, 'Negociando'),
+        (STATUS_HIRED, 'Contratado'),
+        (STATUS_PAID, 'Pago'),
+        (STATUS_CANCELED, 'Cancelado'),
+    ]
+
+    wedding = models.ForeignKey(UserWeddingProfile, on_delete=models.CASCADE, related_name='wedding_suppliers')
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name='wedding_suppliers')
+    is_hired = models.BooleanField(default=False)
+    is_favorite = models.BooleanField(default=False)
+    estimated_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    negotiated_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    paid_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    contract_date = models.DateField(null=True, blank=True)
+    wedding_delivery_date = models.DateField(null=True, blank=True)
+    contract_file_url = models.URLField(blank=True)
+    contract_file_public_id = models.CharField(max_length=255, blank=True)
+    notes = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_QUOTING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-is_favorite', '-updated_at']
+        unique_together = ('wedding', 'supplier')
+
+    def __str__(self):
+        return f'{self.wedding} - {self.supplier}'
 
 
 class WeddingSite(AbstractTimeStamped):
@@ -256,6 +442,7 @@ class ChecklistTask(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     days_before_event = models.IntegerField(null=True, blank=True, help_text="Dias antes do evento para agrupar no frontend")
+    notes = models.TextField(blank=True, help_text="Notas adicionais para a tarefa")
 
     def get_status_display(self):
         return dict(self.STATUS_CHOICES).get(self.status, 'Desconhecido')
@@ -294,20 +481,61 @@ class ChecklistTaskNotification(models.Model):
 
 
 class Guest(models.Model):
+    STATUS_PRESENCA_CHOICES = [
+        ("Pending", "Pendente"),
+        ("Confirmed", "Confirmado"),
+        ("Refused", "Recusado"),
+    ]
+    
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='guests')
     wedding_profile = models.ForeignKey('UserWeddingProfile', on_delete=models.CASCADE, related_name='guests')
     name = models.CharField(max_length=120)
     phone = models.CharField(max_length=20)
     whatsapp = models.CharField(max_length=20, blank=True)
+    photo_url = models.URLField(blank=True, null=True, max_length=500, help_text='URL da foto do convidado (Cloudinary)')
+    photo_public_id = models.CharField(max_length=255, blank=True)
     email = models.EmailField(blank=True, null=True)
     alergias = models.CharField(max_length=255, blank=True, null=True)
     acompanhantes = models.PositiveIntegerField(blank=True, null=True)
     observacoes = models.TextField(blank=True, null=True)
+    status_presenca = models.CharField(
+        max_length=20,
+        choices=STATUS_PRESENCA_CHOICES,
+        default="Pending",
+        null=True,
+        blank=True,
+        help_text="Status de presença do convidado"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
+
+
+class GuestConfirmationToken(models.Model):
+    guest = models.ForeignKey('Guest', on_delete=models.CASCADE, related_name='confirmation_tokens')
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    used_at = models.DateTimeField(null=True, blank=True)
+    confirmation_status = models.CharField(max_length=20, choices=Guest.STATUS_PRESENCA_CHOICES, null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(days=14)
+        super().save(*args, **kwargs)
+
+    def is_valid(self):
+        return (self.used_at is None) and (self.expires_at is None or self.expires_at > timezone.now())
+
+    def mark_used(self, status):
+        self.used_at = timezone.now()
+        self.confirmation_status = status
+        self.save()
+
+    def __str__(self):
+        return f"Token {self.token} for {self.guest}"
 
 
 class Gift(models.Model):
@@ -335,19 +563,46 @@ class Gift(models.Model):
         ("gift_card", "Cartão Presente"),
     ]
     wedding_profile = models.ForeignKey('UserWeddingProfile', on_delete=models.CASCADE, related_name='gifts')
-    name = models.CharField(max_length=120)
+    name = models.CharField(max_length=255)
     value = models.DecimalField(max_digits=10, decimal_places=2)
-    link = models.URLField(blank=True, null=True)
+    link = models.URLField(blank=True, null=True, max_length=2048)
     description = models.TextField(blank=True)
     category = models.CharField(max_length=30, choices=CATEGORY_CHOICES)
-    image = models.URLField(blank=True, null=True, help_text='Cloudinary image URL')
+    image = models.URLField(blank=True, null=True, help_text='Cloudinary image URL', max_length=2048)
+    image_public_id = models.CharField(max_length=255, blank=True, null=True)
     icon = models.CharField(max_length=50, blank=True, help_text='Icon name or CSS class')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="available")
-    purchased_by = models.CharField(max_length=120, blank=True, help_text='Name of the person who purchased')
+    purchased_by = models.CharField(max_length=255, blank=True, help_text='Name of the person who purchased')
     purchase_date = models.DateTimeField(blank=True, null=True)
-    product_code = models.CharField(max_length=100, blank=True, help_text='Product code or identifier')
+    reserved_by = models.CharField(max_length=255, blank=True, help_text='Name of the person who reserved')
+    reserved_message = models.TextField(blank=True)
+    reserved_at = models.DateTimeField(blank=True, null=True)
+    product_code = models.CharField(max_length=100, blank=True, null=True, default='', help_text='Product code or identifier')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['wedding_profile', 'product_code'],
+                condition=~Q(product_code=''),
+                name='unique_gift_product_code_per_wedding',
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self.product_code:
+            source = str(self.link or self.name or '').strip().lower()
+            if source:
+                if self.link:
+                    parsed = urlparse(source)
+                    normalized = f'{parsed.netloc}{parsed.path}'.strip('/') or source
+                    self.product_code = f'url-{slugify(normalized)[:90]}'
+                else:
+                    normalized_name = slugify(source)
+                    self.product_code = f'name-{normalized_name[:90]}' if normalized_name else ''
+
+        super().save(*args, **kwargs)
 
     def get_status_display(self):
         return dict(self.STATUS_CHOICES).get(self.status, 'Desconhecido')
@@ -363,3 +618,28 @@ class GiftListShareToken(models.Model):
 
     def __str__(self):
         return f"Token de compartilhamento de presentes para {self.wedding_profile}"
+
+
+class ProductCatalog(models.Model):
+    title = models.CharField(max_length=255, verbose_name='Nome')
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, verbose_name='Preço sugerido')
+    image_url = models.URLField(blank=True, max_length=2048, verbose_name='URL da imagem')
+    product_url = models.URLField(unique=True, db_index=True, max_length=2048, verbose_name='URL do produto')
+    store = models.CharField(max_length=120, db_index=True)
+    category = models.CharField(max_length=120, blank=True, db_index=True)
+    search_term = models.CharField(max_length=255, blank=True, db_index=True)
+    is_essential_template = models.BooleanField(default=False, db_index=True, verbose_name='Template básico')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at', 'store', 'title']
+        indexes = [
+            models.Index(fields=['store', 'category']),
+            models.Index(fields=['search_term']),
+            models.Index(fields=['is_essential_template']),
+        ]
+
+    def __str__(self):
+        return f'{self.title} - {self.store}'

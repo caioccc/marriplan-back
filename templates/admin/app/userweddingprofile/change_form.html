@@ -1,0 +1,176 @@
+{% extends "admin/change_form.html" %}
+
+{% block after_field_sets %}
+  {{ block.super }}
+
+  <div class="module">
+    <h2>Entidades vinculadas</h2>
+    <p>Marque os itens desejados em cada seção e use o botão de remoção em lote correspondente.</p>
+  </div>
+
+  <div class="module">
+    <h2>Convidados ({{ guests_related|length }})</h2>
+    {% if guests_related %}
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="width: 36px;"><input type="checkbox" data-select-all data-target=".js-guest-select"></th>
+            <th>Nome</th>
+            <th>Telefone</th>
+            <th>E-mail</th>
+            <th>Status</th>
+            <th>Criado em</th>
+            <th>Abrir</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for guest in guests_related %}
+            <tr>
+              <td><input type="checkbox" name="guests_selected_ids" value="{{ guest.pk }}" class="js-guest-select"></td>
+              <td>{{ guest.name }}</td>
+              <td>{{ guest.phone|default:"-" }}</td>
+              <td>{{ guest.email|default:"-" }}</td>
+              <td>{{ guest.get_status_presenca_display }}</td>
+              <td>{{ guest.created_at|date:"d/m/Y H:i" }}</td>
+              <td><a href="{% url 'admin:app_guest_change' guest.pk %}">Ver</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div style="margin-top: 12px;">
+        <button type="submit" class="deletelink" name="_bulk_delete_related" value="guests" onclick="return confirm('Remover os convidados selecionados?');">Remover selecionados</button>
+      </div>
+    {% else %}
+      <p>Nenhum convidado cadastrado.</p>
+    {% endif %}
+  </div>
+
+  <div class="module">
+    <h2>Presentes ({{ gifts_related|length }})</h2>
+    {% if gifts_related %}
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="width: 36px;"><input type="checkbox" data-select-all data-target=".js-gift-select"></th>
+            <th>Nome</th>
+            <th>Valor</th>
+            <th>Categoria</th>
+            <th>Status</th>
+            <th>Criado em</th>
+            <th>Abrir</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for gift in gifts_related %}
+            <tr>
+              <td><input type="checkbox" name="gifts_selected_ids" value="{{ gift.pk }}" class="js-gift-select"></td>
+              <td>{{ gift.name }}</td>
+              <td>R$ {{ gift.value }}</td>
+              <td>{{ gift.get_category_display }}</td>
+              <td>{{ gift.get_status_display }}</td>
+              <td>{{ gift.created_at|date:"d/m/Y H:i" }}</td>
+              <td><a href="{% url 'admin:app_gift_change' gift.pk %}">Ver</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div style="margin-top: 12px;">
+        <button type="submit" class="deletelink" name="_bulk_delete_related" value="gifts" onclick="return confirm('Remover os presentes selecionados?');">Remover selecionados</button>
+      </div>
+    {% else %}
+      <p>Nenhum presente cadastrado.</p>
+    {% endif %}
+  </div>
+
+  <div class="module">
+    <h2>Fornecedores do casamento ({{ wedding_suppliers_related|length }})</h2>
+    {% if wedding_suppliers_related %}
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="width: 36px;"><input type="checkbox" data-select-all data-target=".js-wedding-supplier-select"></th>
+            <th>Fornecedor</th>
+            <th>Status</th>
+            <th>Favorito</th>
+            <th>Contratado</th>
+            <th>Valor estimado</th>
+            <th>Valor negociado</th>
+            <th>Pago</th>
+            <th>Atualizado em</th>
+            <th>Abrir</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for wedding_supplier in wedding_suppliers_related %}
+            <tr>
+              <td><input type="checkbox" name="wedding_suppliers_selected_ids" value="{{ wedding_supplier.pk }}" class="js-wedding-supplier-select"></td>
+              <td>{{ wedding_supplier.supplier.name }}</td>
+              <td>{{ wedding_supplier.get_status_display }}</td>
+              <td>{% if wedding_supplier.is_favorite %}Sim{% else %}Não{% endif %}</td>
+              <td>{% if wedding_supplier.is_hired %}Sim{% else %}Não{% endif %}</td>
+              <td>{% if wedding_supplier.estimated_price %}R$ {{ wedding_supplier.estimated_price }}{% else %}-{% endif %}</td>
+              <td>{% if wedding_supplier.negotiated_price %}R$ {{ wedding_supplier.negotiated_price }}{% else %}-{% endif %}</td>
+              <td>{% if wedding_supplier.paid_amount %}R$ {{ wedding_supplier.paid_amount }}{% else %}-{% endif %}</td>
+              <td>{{ wedding_supplier.updated_at|date:"d/m/Y H:i" }}</td>
+              <td><a href="{% url 'admin:app_weddingsupplier_change' wedding_supplier.pk %}">Ver</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div style="margin-top: 12px;">
+        <button type="submit" class="deletelink" name="_bulk_delete_related" value="wedding_suppliers" onclick="return confirm('Remover os fornecedores selecionados?');">Remover selecionados</button>
+      </div>
+    {% else %}
+      <p>Nenhum fornecedor vinculado ao casamento.</p>
+    {% endif %}
+  </div>
+
+  <div class="module">
+    <h2>Tarefas ({{ checklist_tasks_related|length }})</h2>
+    {% if checklist_tasks_related %}
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="width: 36px;"><input type="checkbox" data-select-all data-target=".js-task-select"></th>
+            <th>Descrição</th>
+            <th>Mês</th>
+            <th>Prioridade</th>
+            <th>Status</th>
+            <th>Vencimento</th>
+            <th>Abrir</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for task in checklist_tasks_related %}
+            <tr>
+              <td><input type="checkbox" name="checklist_tasks_selected_ids" value="{{ task.pk }}" class="js-task-select"></td>
+              <td>{{ task.description }}</td>
+              <td>{{ task.month }}</td>
+              <td>{{ task.get_priority_display }}</td>
+              <td>{{ task.get_status_display }}</td>
+              <td>{{ task.due_date|date:"d/m/Y" }}</td>
+              <td><a href="{% url 'admin:app_checklisttask_change' task.pk %}">Ver</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div style="margin-top: 12px;">
+        <button type="submit" class="deletelink" name="_bulk_delete_related" value="checklist_tasks" onclick="return confirm('Remover as tarefas selecionadas?');">Remover selecionados</button>
+      </div>
+    {% else %}
+      <p>Nenhuma tarefa cadastrada.</p>
+    {% endif %}
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('[data-select-all]').forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+          document.querySelectorAll(checkbox.getAttribute('data-target')).forEach(function (item) {
+            item.checked = checkbox.checked;
+          });
+        });
+      });
+    });
+  </script>
+{% endblock %}

@@ -9,7 +9,6 @@ class Command(createsuperuser.Command):
         super(Command, self).add_arguments(parser)
         parser.add_argument(
             '--password', dest='password', default=None,
-            help='Specifies the password for the superuser.',
         )
 
     def handle(self, *args, **options):

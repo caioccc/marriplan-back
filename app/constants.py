@@ -119,3 +119,19 @@ EMAIL_GIFT_UNMARKED_BODY = """
   </body>
 </html>
 """
+EMAIL_GIFT_RESERVED_SUBJECT = '🎁 Presente reservado na sua lista!'
+EMAIL_GIFT_RESERVED_BODY = """
+<html>
+  <body style=\"font-family: Arial, sans-serif; color: #333;\">
+    <div style=\"max-width: 480px; margin: auto; border: 1px solid #eee; border-radius: 8px; padding: 24px;\">
+      <h2 style=\"color: #2d8cff;\">🎁 Um presente foi reservado!</h2>
+      <p>Olá,</p>
+      <p>O presente <b>{gift_name}</b> foi reservado na sua lista de presentes.</p>
+      <p>Reservado por: <b>{reserved_by}</b></p>
+      <p>Mensagem: <i>{message}</i></p>
+      <hr>
+      <p style=\"font-size: 14px; color: #888;\">Com carinho,<br>Equipe MarriPlan</p>
+    </div>
+  </body>
+</html>
+"""

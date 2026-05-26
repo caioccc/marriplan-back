@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 from app.models import ChecklistTask, ChecklistTaskNotification
+from app.utils import create_limited_notification
 
 # Exemplo de função para rodar via Celery ou cron
 
@@ -27,13 +28,12 @@ def send_checklist_task_reminders():
             sent_at=now
         )
         # Cria notificação no sistema (Notification)
-        from app.models import Notification
-        Notification.objects.create(
+        create_limited_notification(
             user=task.user,
             type='info',
             title='⏰ Lembrete de tarefa',
             message=f'A tarefa "{task.description}" vence em 3 dias. Não se esqueça de concluir!',
-            is_read=False
+            is_read=False,
         )
         # Envia e-mail
         send_mail(

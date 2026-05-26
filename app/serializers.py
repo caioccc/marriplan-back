@@ -3,7 +3,7 @@ import string
 
 from app.models import (ChatMessage, CustomUser, Notification, UserSession,
                         UserSettings, UserWeddingProfile, WeddingSite,
-                        WeddingSiteHistory, WeddingImage, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest, Gift, GiftListShareToken)
+                        WeddingSiteHistory, WeddingImage, WeddingIdentity, WeddingIdentityInspiration, WeddingIdentityShareToken, ChecklistTask, ChecklistTaskAttachment, ChecklistTaskShare, Guest, GuestConfirmationToken, Gift, GiftListShareToken, SupplierCategory, Supplier, WeddingSupplier, STYLE_CHOICES)
 from django.contrib.auth import authenticate, get_user_model
 from django.utils.text import slugify
 from rest_framework import serializers
@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         ref_name = "User"
         model = CustomUser
-        fields = ('id', 'username', 'email', 'is_email_confirmed', 'is_2fa_enabled', 'settings', 'role', 'wedding_profile', 'wedding_site',)
+        fields = ('id', 'username', 'email', 'is_email_confirmed', 'is_2fa_enabled', 'settings', 'role', 'wedding_partner_role', 'wedding_profile', 'wedding_site',)
 
     def get_wedding_site(self, obj):
         try:
@@ -147,10 +147,60 @@ class NotificationSerializer(serializers.ModelSerializer):
         fields = ['id', 'type', 'title', 'message', 'is_read', 'created_at']
 
 
+class WeddingIdentitySerializer(serializers.ModelSerializer):
+    selected_style = serializers.ChoiceField(choices=STYLE_CHOICES, required=False, allow_blank=True)
+
+    class Meta:
+        model = WeddingIdentity
+        fields = ['id', 'wedding_profile', 'selected_style', 'wedding_size', 'dress_code', 'palette', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'wedding_profile', 'created_at', 'updated_at']
+
+    def validate_palette(self, value):
+        if value in (None, ''):
+            return []
+        if not isinstance(value, list):
+            raise serializers.ValidationError('A paleta deve ser uma lista de cores.')
+        return value
+
+
+class WeddingIdentityInspirationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WeddingIdentityInspiration
+        fields = [
+            'id', 'wedding_profile', 'source_id', 'title', 'description', 'image_url', 'thumbnail_url',
+            'source_url', 'query', 'selected_style', 'dress_code', 'is_favorite', 'is_liked', 'metadata',
+            'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'wedding_profile', 'created_at', 'updated_at']
+
+    def validate_metadata(self, value):
+        if value in (None, ''):
+            return {}
+        if not isinstance(value, dict):
+            raise serializers.ValidationError('Os metadados devem ser um objeto.')
+        return value
+
+
+class WeddingIdentityShareTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WeddingIdentityShareToken
+        fields = ['token', 'created_at']
+
+
 class UserWeddingProfileSerializer(serializers.ModelSerializer):
+    wedding_identity = WeddingIdentitySerializer(read_only=True)
+    inspirations_count = serializers.SerializerMethodField()
+    has_wedding_identity = serializers.SerializerMethodField()
+
     class Meta:
         model = UserWeddingProfile
         fields = '__all__'
+
+    def get_has_wedding_identity(self, obj):
+        return hasattr(obj, 'wedding_identity')
+
+    def get_inspirations_count(self, obj):
+        return obj.inspirations.count() if hasattr(obj, 'inspirations') else 0
 
 
 class WeddingImageSerializer(serializers.ModelSerializer):
@@ -194,7 +244,7 @@ class ChecklistTaskSerializer(serializers.ModelSerializer):
         model = ChecklistTask
         fields = [
             'id', 'user', 'month', 'description', 'start_date', 'due_date',
-            'priority', 'status', 'is_template', 'attachments', 'created_at', 'updated_at', 'days_before_event'
+            'priority', 'status', 'is_template', 'attachments', 'created_at', 'updated_at', 'days_before_event', 'notes'
         ]
         read_only_fields = ['user', 'created_at', 'updated_at', 'attachments', 'days_before_event']
 
@@ -208,22 +258,66 @@ class ChecklistTaskShareSerializer(serializers.ModelSerializer):
 class GuestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guest
-        fields = ['id', 'name', 'phone', 'whatsapp', 'email', 'alergias', 'acompanhantes', 'observacoes', 'user', 'wedding_profile', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'phone', 'whatsapp', 'photo_url', 'photo_public_id', 'email', 'alergias', 'acompanhantes', 'observacoes', 'status_presenca', 'user', 'wedding_profile', 'created_at', 'updated_at']
         read_only_fields = ['id', 'user', 'wedding_profile', 'created_at', 'updated_at']
 
 
 class GiftSerializer(serializers.ModelSerializer):
+    product_code = serializers.CharField(required=False, allow_blank=True, allow_null=True, default='')
+
     class Meta:
         model = Gift
         fields = [
             'id', 'wedding_profile', 'name', 'value', 'link', 'description', 'category',
-            'image', 'icon', 'status', 'purchased_by',
-            'purchase_date', 'product_code', 'created_at', 'updated_at'
+            'image', 'image_public_id', 'icon', 'status', 'purchased_by', 'purchase_date',
+            'reserved_by', 'reserved_message', 'reserved_at',
+            'product_code', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'purchase_date', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'purchase_date', 'reserved_at', 'created_at', 'updated_at']
 
 
 class GiftListShareTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = GiftListShareToken
         fields = ['token', 'created_at']
+
+
+class GuestConfirmationTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GuestConfirmationToken
+        fields = ['id', 'guest', 'token', 'created_at', 'expires_at', 'used_at', 'confirmation_status']
+        read_only_fields = ['id', 'token', 'created_at', 'expires_at', 'used_at']
+
+
+class SupplierCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupplierCategory
+        fields = ['id', 'name', 'slug']
+
+
+class SupplierSerializer(serializers.ModelSerializer):
+    category_detail = SupplierCategorySerializer(source='category', read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(source='category', queryset=SupplierCategory.objects.all(), write_only=True)
+
+    class Meta:
+        model = Supplier
+        fields = [
+            'id', 'category_detail', 'category_id', 'name', 'company_name', 'description', 'phone', 'cnpj',
+            'whatsapp', 'email', 'instagram', 'website', 'city', 'state', 'cover_image_url',
+            'cover_image_public_id', 'status', 'visibility', 'is_featured', 'created_by_user', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_by_user', 'created_at', 'updated_at']
+
+
+class WeddingSupplierSerializer(serializers.ModelSerializer):
+    supplier_detail = SupplierSerializer(source='supplier', read_only=True)
+    supplier_id = serializers.PrimaryKeyRelatedField(source='supplier', queryset=Supplier.objects.all(), write_only=True)
+
+    class Meta:
+        model = WeddingSupplier
+        fields = [
+            'id', 'wedding', 'supplier_detail', 'supplier_id', 'is_hired', 'is_favorite',
+            'estimated_price', 'negotiated_price', 'paid_amount', 'contract_date', 'wedding_delivery_date',
+            'contract_file_url', 'contract_file_public_id', 'notes', 'status', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'wedding', 'created_at', 'updated_at']

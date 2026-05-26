@@ -22,6 +22,7 @@ dependencies:
       - charset-normalizer==3.4.1
       - click==8.2.1
       - colorama==0.4.6
+      - cloudinary==1.44.1
       - coreapi==2.3.3
       - coreschema==0.0.4
       - cryptography==44.0.0
@@ -85,7 +86,6 @@ dependencies:
 
       # Database
       - psycopg2-binary==2.9.10
-      - pymongo
       - SQLAlchemy==2.0.41
 
       # Code quality
@@ -124,7 +124,5 @@ dependencies:
       - yarl==1.20.0
 
       # Vector databases and embeddings
-      - qdrant-client
-      - sentence-transformers
       - google-auth
       - cloudinary

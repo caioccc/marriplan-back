@@ -11,10 +11,18 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 import os
+import logging
 from pathlib import Path
 
 import cloudinary
 import dj_database_url
+
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.logging import LoggingIntegration
+except ImportError:  # pragma: no cover - sentry is optional in local/dev setups
+    sentry_sdk = None
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -96,13 +104,45 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s %(levelname)s %(name)s %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
+        },
+    },
+    'loggers': {
+        'app.audit': {
+            'handlers': ['console'],
+            'level': os.environ.get('LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': os.environ.get('LOG_LEVEL', 'INFO'),
+    },
+}
+
 # Change your project name
 ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -129,6 +169,7 @@ DATABASES = {
 }
 
 NAME_DB = os.getenv('DB_NAME', 'db.sqlite3')
+URI_DB = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/app')
 
 if 'sqlite' in NAME_DB:
     DATABASES = {
@@ -149,7 +190,7 @@ elif 'app' in NAME_DB:
         }
     }
 else:
-    db_from_env = dj_database_url.config(default='postgresql://postgres:postgres@localhost:5432/{}'.format(NAME_DB),
+    db_from_env = dj_database_url.config(default='{}'.format(URI_DB),
                                          conn_max_age=600)
     DATABASES['default'].update(db_from_env)
 
@@ -218,7 +259,6 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
-        'app.core.renderers.EventStreamRenderer',  # Custom SSE renderer
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
@@ -239,16 +279,24 @@ FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
 AUTH_USER_MODEL = 'app.CustomUser'
 
-# MongoDB
-MONGODB_URL = 'mongodb://localhost:27017/'
-MONGODB_DB = 'marriplan'
+SENTRY_DSN = os.getenv('SENTRY_DSN', '')
+SENTRY_TRACES_SAMPLE_RATE = float(os.getenv('SENTRY_TRACES_SAMPLE_RATE', '0.0'))
+SENTRY_PROFILES_SAMPLE_RATE = float(os.getenv('SENTRY_PROFILES_SAMPLE_RATE', '0.0'))
 
-# Qdrant
-QDRANT_HOST = 'localhost'
-QDRANT_PORT = 6333
+if sentry_sdk and SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[
+            DjangoIntegration(),
+            LoggingIntegration(level=logging.INFO, event_level=logging.ERROR),
+        ],
+        send_default_pii=False,
+        traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
+        profiles_sample_rate=SENTRY_PROFILES_SAMPLE_RATE,
+        environment=os.getenv('SENTRY_ENVIRONMENT', 'development'),
+    )
 
-# ETL
-RUN_ETL_ON_STARTUP = False  # Desabilitado: ETL não roda mais automaticamente para o chat
+
 
 cloudinary.config(
     cloud_name='freelancerinc',

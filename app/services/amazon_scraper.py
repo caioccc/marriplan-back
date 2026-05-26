@@ -1,0 +1,1 @@
+from app.services.scrapers.amazon import AmazonScraper as AmazonScraperService

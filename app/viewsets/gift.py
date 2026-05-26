@@ -1,11 +1,16 @@
 import io
 import secrets
+import re
+from decimal import Decimal
+from urllib.parse import parse_qs, unquote, urlparse
 
 import openpyxl
 import pandas as pd
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.text import slugify
+from django.db import transaction
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from rest_framework import (filters, permissions, status, viewsets)
@@ -13,12 +18,202 @@ from rest_framework.decorators import (action)
 from rest_framework.generics import get_object_or_404
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from app.models import (Gift, GiftListShareToken)
+from app.models import (Gift, GiftListShareToken, ProductCatalog)
 from app.serializers import (GiftListShareTokenSerializer, GiftSerializer)
-from app.utils import (notify_gift_status_change)
+from app.logging_utils import audit_log
+from app.utils import (
+    MAX_GIFTS_PER_WEDDING,
+    is_limit_reached,
+    is_valid_url,
+    notify_gift_status_change,
+    normalize_gift_value,
+    to_sentence_case,
+    to_upper_camel_words,
+)
+
+
+ESSENTIAL_CATALOG_TO_GIFT_CATEGORY = {
+    'cozinha': 'kitchen',
+    'eletrodomesticos': 'electronics',
+    'moveis': 'furniture',
+    'quarto': 'home',
+    'banheiro': 'home',
+    'decoracao': 'decor',
+    'tecnologia': 'electronics',
+    'lavanderia': 'home',
+    'lua_de_mel': 'travel',
+    'outros': 'other',
+}
+
+
+AMAZON_PRODUCT_PATTERN = re.compile(r'/(?:dp|gp/product|gp/aw/d|product)/([A-Z0-9]{10})(?:[/?]|$)', re.IGNORECASE)
+
+
+def map_catalog_category_to_gift(category: str | None, title: str | None = None) -> str:
+    raw_value = f'{category or ""} {title or ""}'.strip().lower()
+    normalized = (category or '').strip().lower()
+
+    if normalized in ESSENTIAL_CATALOG_TO_GIFT_CATEGORY:
+        return ESSENTIAL_CATALOG_TO_GIFT_CATEGORY[normalized]
+
+    heuristics = (
+        ('kitchen', ('panela', 'cafeteira', 'liquidificador', 'frigideira', 'air fryer', 'cooktop', 'micro-ondas')),
+        ('electronics', ('tv', 'notebook', 'tablet', 'smartphone', 'fone', 'caixa de som', 'aspirador', 'ventilador')),
+        ('furniture', ('mesa', 'cadeira', 'sofa', 'sofá', 'guarda roupa', 'armario', 'armário', 'rack', 'cama')),
+        ('decor', ('quadro', 'vaso', 'espelho', 'abajur', 'luminaria', 'luminária', 'vela', 'aromatizador')),
+        ('travel', ('mala', 'mochila', 'necessaire', 'travesseiro de pescoco', 'power bank')),
+    )
+
+    for gift_category, keywords in heuristics:
+        if any(keyword in raw_value for keyword in keywords):
+            return gift_category
+
+    return 'home'
+
+
+def build_gift_product_code(*, name: str | None = None, link: str | None = None, category: str | None = None) -> str:
+    source = str(link or name or category or '').strip().lower()
+    if not source:
+        return ''
+
+    if link:
+        for candidate in (source, unquote(source)):
+            match = AMAZON_PRODUCT_PATTERN.search(candidate)
+            if match:
+                return f'amazon-asin-{match.group(1).lower()}'
+
+        parsed = urlparse(source)
+        query_params = parse_qs(parsed.query)
+        for key in ('url', 'u', 'redirect', 'dest', 'destination'):
+            target = query_params.get(key, [None])[0]
+            if not target:
+                continue
+            nested_code = build_gift_product_code(link=unquote(target))
+            if nested_code:
+                return nested_code
+
+        normalized = f'{parsed.netloc}{parsed.path}'.strip('/') or source
+        normalized = slugify(normalized)
+        return f'url-{normalized[:90]}' if normalized else ''
+
+    normalized_name = slugify(source)
+    return f'name-{normalized_name[:90]}' if normalized_name else ''
+
+
+class GenerateBasicGiftListAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        wedding_profile = getattr(user, 'wedding_profile', None)
+        if not wedding_profile:
+            return Response({'detail': 'Usuário sem perfil de casamento.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        catalog_items = list(
+            ProductCatalog.objects.filter(is_essential_template=True).order_by('store', 'category', 'title')
+        )
+        if not catalog_items:
+            return Response(
+                {'detail': 'Nenhum item essencial foi encontrado no catálogo.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        existing_codes = set(
+            Gift.objects.filter(wedding_profile=wedding_profile)
+            .exclude(product_code='')
+            .values_list('product_code', flat=True)
+        )
+        existing_codes.update(
+            filter(
+                None,
+                (
+                    build_gift_product_code(
+                        name=gift.name,
+                        link=gift.link,
+                        category=gift.category,
+                    )
+                    for gift in Gift.objects.filter(wedding_profile=wedding_profile)
+                ),
+            )
+        )
+
+        gifts_to_create = []
+        now = timezone.now()
+        for catalog_item in catalog_items:
+            product_code = build_gift_product_code(
+                name=catalog_item.title,
+                link=catalog_item.product_url,
+                category=catalog_item.category,
+            )
+            if not product_code:
+                continue
+            if product_code in existing_codes:
+                continue
+
+            gifts_to_create.append(
+                Gift(
+                    wedding_profile=wedding_profile,
+                    name=catalog_item.title,
+                    value=catalog_item.price or Decimal('0.00'),
+                    link=catalog_item.product_url,
+                    description=catalog_item.description,
+                    category=map_catalog_category_to_gift(catalog_item.category, catalog_item.title),
+                    image=catalog_item.image_url,
+                    image_public_id='',
+                    icon='',
+                    status='available',
+                    purchased_by='',
+                    purchase_date=None,
+                    reserved_by='',
+                    reserved_message='',
+                    reserved_at=None,
+                    product_code=product_code,
+                    created_at=now,
+                    updated_at=now,
+                )
+            )
+            existing_codes.add(product_code)
+
+        if not gifts_to_create:
+            return Response(
+                {
+                    'created': 0,
+                    'skipped_existing': len(catalog_items),
+                    'detail': 'A lista básica já foi gerada para este casamento.',
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        current_count = Gift.objects.filter(wedding_profile=wedding_profile).count()
+        if current_count + len(gifts_to_create) > MAX_GIFTS_PER_WEDDING:
+            return Response(
+                {
+                    'detail': 'A lista básica excede o limite máximo de presentes permitido para este casamento.',
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        with transaction.atomic():
+            Gift.objects.bulk_create(gifts_to_create, batch_size=100, ignore_conflicts=True)
+
+        audit_log(
+            'gift.generate_basic',
+            user=request.user,
+            obj=wedding_profile,
+            message=f'Lista básica gerada com {len(gifts_to_create)} presente(s)',
+        )
+        return Response(
+            {
+                'created': len(gifts_to_create),
+                'skipped_existing': len(catalog_items) - len(gifts_to_create),
+                'detail': 'Lista básica de presentes gerada com sucesso.',
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class GiftViewSet(viewsets.ModelViewSet):
@@ -36,14 +231,54 @@ class GiftViewSet(viewsets.ModelViewSet):
         wedding_profile = getattr(user, 'wedding_profile', None)
         if not wedding_profile:
             return Response({'detail': 'Usuário sem perfil de casamento.'}, status=400)
+        current_count = Gift.objects.filter(wedding_profile=wedding_profile).count()
+        if is_limit_reached(current_count, MAX_GIFTS_PER_WEDDING):
+            raise ValidationError({'detail': 'Limite de 300 presentes atingido.'})
         data = request.data.copy()
         data['wedding_profile'] = wedding_profile.id
-        serializer = self.get_serializer(data=data)
+        product_code = data.get('product_code') or build_gift_product_code(
+            name=data.get('name'),
+            link=data.get('link'),
+            category=data.get('category'),
+        )
+        if product_code:
+            existing_gift = Gift.objects.filter(
+                wedding_profile=wedding_profile,
+                product_code=product_code,
+            ).first()
+            if existing_gift:
+                return Response(
+                    GiftSerializer(existing_gift, context={'request': request}).data,
+                    status=status.HTTP_200_OK,
+                )
+
+        data['product_code'] = product_code
+        serializer = self.get_serializer(data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         # notify_gift_status_change(serializer.instance, 'created') # Notificação para created ainda não implementada
+        audit_log('gift.create', user=request.user, obj=serializer.instance, message='Presente criado')
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        if request.data.get('status') == 'available':
+            gift = self.get_object()
+            if gift.status == 'available':
+                gift.purchased_by = ''
+                gift.purchase_date = None
+                gift.reserved_by = ''
+                gift.reserved_message = ''
+                gift.reserved_at = None
+                gift.save()
+                response.data = GiftSerializer(gift, context={'request': request}).data
+            audit_log('gift.update', user=request.user, obj=self.get_object(), message='Presente atualizado')
+        return response
+
+    def perform_destroy(self, instance):
+        audit_log('gift.delete', user=self.request.user, obj=instance, message='Presente removido')
+        instance.delete()
 
     def get_queryset(self):
         user = self.request.user
@@ -68,6 +303,9 @@ class GiftViewSet(viewsets.ModelViewSet):
         gift.purchased_by = request.data.get('purchased_by',
                                              '') or request.user.get_full_name() or request.user.username
         gift.purchase_date = timezone.now()
+        gift.reserved_by = ''
+        gift.reserved_message = ''
+        gift.reserved_at = None
         gift.save()
         message = request.data.get('message', '')
         notify_gift_status_change(gift, 'purchased', message=message)
@@ -81,6 +319,9 @@ class GiftViewSet(viewsets.ModelViewSet):
         gift.status = 'available'  # ou o valor default do status
         gift.purchased_by = ''
         gift.purchase_date = None
+        gift.reserved_by = ''
+        gift.reserved_message = ''
+        gift.reserved_at = None
         gift.save()
         notify_gift_status_change(gift, 'unmarked')
         return Response(GiftSerializer(gift, context={'request': request}).data)
@@ -104,7 +345,7 @@ class GiftViewSet(viewsets.ModelViewSet):
         ws.append([
             'Panela Elétrica de Arroz',
             199.90,
-            'https://www.magazineluiza.com.br/panela-arroz/p/123456/',
+            'https://www.amazon.com.br/panela-eletrica-de-arroz',
             'Panela elétrica para preparar arroz de forma prática e rápida.',
             'Casa',
             'https://images.unsplash.com/photo-1519864600265-abb23847ef2c',
@@ -124,7 +365,7 @@ class GiftViewSet(viewsets.ModelViewSet):
         ws.append([
             'Liquidificador Turbo',
             249.00,
-            'https://www.americanas.com.br/liquidificador/p/654321/',
+            'https://www.amazon.com.br/liquidificador-turbo',
             'Liquidificador potente com 5 velocidades.',
             'Eletrodomésticos',
             'https://images.unsplash.com/photo-1519125323398-675f0ddb6308',
@@ -152,14 +393,11 @@ class GiftViewSet(viewsets.ModelViewSet):
             'Descrição': 'description',
             'Categoria': 'category',
             'Imagem': 'image',
+            'Imagem Public ID': 'image_public_id',
             'Status': 'status',
             'Código do Produto': 'product_code',
         }
         fields = list(header_map.values())
-        def is_url(val):
-            if not val or not isinstance(val, str):
-                return False
-            return val.startswith('http://') or val.startswith('https://')
         # Funções de normalização movidas para cá
         def normalize_status(val):
             if not val:
@@ -181,7 +419,7 @@ class GiftViewSet(viewsets.ModelViewSet):
                 errors.append(f"Linha {row_idx}: Nome do presente é obrigatório.")
             if not data.get('value') or str(data.get('value')).strip() == '':
                 errors.append(f"Linha {row_idx}: Valor é obrigatório.")
-            if data.get('image') and not is_url(data.get('image')):
+            if data.get('image') and not is_valid_url(data.get('image')):
                 errors.append(f"Linha {row_idx}: Imagem deve ser um link válido (URL).")
             # Choices válidos do model
             VALID_STATUS = [c[0] for c in Gift.STATUS_CHOICES] + [c[1] for c in Gift.STATUS_CHOICES]
@@ -193,16 +431,46 @@ class GiftViewSet(viewsets.ModelViewSet):
             if category_value and category_value not in VALID_CATEGORY:
                 errors.append(f"Linha {row_idx}: Categoria inválida.")
             return errors
+
+        def normalize_row(data):
+            data['name'] = to_upper_camel_words(data.get('name'))
+            data['description'] = to_sentence_case(data.get('description'))
+            data['value'] = normalize_gift_value(data.get('value'))
+
+            if data.get('link') and not is_valid_url(data.get('link')):
+                data['link'] = ''
+            elif data.get('link'):
+                data['link'] = str(data.get('link')).strip()
+
+            if data.get('image') and not is_valid_url(data.get('image')):
+                data['image'] = ''
+            elif data.get('image'):
+                data['image'] = str(data.get('image')).strip()
+
+            if not data.get('product_code'):
+                data['product_code'] = build_gift_product_code(
+                    name=data.get('name'),
+                    link=data.get('link'),
+                    category=data.get('category'),
+                )
+
+            return data
+
         if file.name.endswith('.csv'):
             df = pd.read_csv(file)
             if any(col in header_map for col in df.columns):
                 df = df.rename(columns=header_map)
             created, errors = 0, []
+            current_count = Gift.objects.filter(wedding_profile=request.user.wedding_profile).count()
             for i, row in df.iterrows():
+                if is_limit_reached(current_count, MAX_GIFTS_PER_WEDDING):
+                    errors.append(f'Linha {i + 2}: Limite de 300 presentes atingido. Os registros restantes foram ignorados.')
+                    break
                 try:
                     data = dict(zip(fields, [row.get(f, '') for f in fields]))
                     data['wedding_profile'] = request.user.wedding_profile.id
                     # Normalização e validação
+                    data = normalize_row(data)
                     data['status'] = normalize_status(data.get('status'))
                     data['category'] = normalize_category(data.get('category'))
                     # Validações
@@ -217,6 +485,7 @@ class GiftViewSet(viewsets.ModelViewSet):
                     serializer.is_valid(raise_exception=True)
                     serializer.save()
                     created += 1
+                    current_count += 1
                 except Exception as e:
                     errors.append(f"Linha {i + 2}: {str(e)}")
         elif file.name.endswith('.xlsx'):
@@ -225,12 +494,17 @@ class GiftViewSet(viewsets.ModelViewSet):
             header_row = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]
             mapped_headers = [header_map.get(h, h) for h in header_row]
             created, errors = 0, []
+            current_count = Gift.objects.filter(wedding_profile=request.user.wedding_profile).count()
             for i, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+                if is_limit_reached(current_count, MAX_GIFTS_PER_WEDDING):
+                    errors.append(f'Linha {i}: Limite de 300 presentes atingido. Os registros restantes foram ignorados.')
+                    break
                 try:
                     data = dict(zip(mapped_headers, row))
                     data = {f: data.get(f, '') for f in fields}
                     data['wedding_profile'] = request.user.wedding_profile.id
                     # Normalização e validação
+                    data = normalize_row(data)
                     data['status'] = normalize_status(data.get('status'))
                     data['category'] = normalize_category(data.get('category'))
                     # Validações
@@ -245,6 +519,7 @@ class GiftViewSet(viewsets.ModelViewSet):
                     serializer.is_valid(raise_exception=True)
                     serializer.save()
                     created += 1
+                    current_count += 1
                 except Exception as e:
                     errors.append(f"Linha {i}: {str(e)}")
         else:
@@ -305,6 +580,28 @@ class GiftViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'detail': f'Erro ao exportar PDF: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=False, methods=['get'], url_path='all', permission_classes=[permissions.IsAuthenticated])
+    def all(self, request):
+        """Retorna todos os presentes do perfil do casal sem paginação (uso para dashboards/exports)."""
+        user = request.user
+        wedding_profile = getattr(user, 'wedding_profile', None)
+        if not wedding_profile:
+            return Response({'detail': 'Usuário sem perfil de casamento.'}, status=400)
+        queryset = Gift.objects.filter(wedding_profile=wedding_profile)
+        # Permitir filtros básicos por search/ordering/status/category se desejado
+        search = request.GET.get('search')
+        if search:
+            queryset = queryset.filter(name__icontains=search) | queryset.filter(category__icontains=search)
+        status_param = request.GET.get('status')
+        if status_param:
+            status_list = [s.strip() for s in status_param.split(',') if s.strip()]
+            queryset = queryset.filter(status__in=status_list)
+        category_param = request.GET.get('category')
+        if category_param:
+            queryset = queryset.filter(category=category_param)
+
+        serializer = GiftSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
 
 class GiftListShareTokenView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -327,6 +624,7 @@ class PublicGiftListView(APIView):
 
     def get(self, request, token):
         token_obj = get_object_or_404(GiftListShareToken, token=token)
+        wedding_profile = token_obj.wedding_profile
         gifts = Gift.objects.filter(wedding_profile=token_obj.wedding_profile)
 
         # Filtros múltiplos por categoria
@@ -401,4 +699,43 @@ class PublicGiftListView(APIView):
             'page_size': page_size,
             'categories': categories_options,
             'status': status_options,
+            'wedding_profile': {
+                'id': wedding_profile.id,
+                'nome_noivo': wedding_profile.nome_noivo,
+                'nome_noiva': wedding_profile.nome_noiva,
+            },
         })
+
+    def post(self, request, token):
+        token_obj = get_object_or_404(GiftListShareToken, token=token)
+        gift_id = request.data.get('gift_id')
+        if not gift_id:
+            return Response({'detail': 'Presente não informado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        gift = get_object_or_404(Gift, pk=gift_id, wedding_profile=token_obj.wedding_profile)
+        if gift.status != 'available':
+            return Response({'detail': 'Este presente não está disponível para reserva.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        reserver_name = (request.data.get('reserver_name') or request.data.get('name') or '').strip()
+        reservation_message = (request.data.get('message') or '').strip()
+
+        with transaction.atomic():
+            gift.status = 'reserved'
+            gift.reserved_by = reserver_name
+            gift.reserved_message = reservation_message
+            gift.reserved_at = timezone.now()
+            gift.purchased_by = ''
+            gift.purchase_date = None
+            gift.save()
+
+        notification_result = notify_gift_status_change(
+            gift,
+            'reserved',
+            message=reservation_message,
+            reserved_by=reserver_name,
+        )
+
+        return Response({
+            'gift': GiftSerializer(gift, context={'request': request}).data,
+            'whatsapp_links': notification_result.get('whatsapp_links', []),
+        }, status=status.HTTP_200_OK)
