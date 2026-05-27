@@ -10,6 +10,7 @@ from app.models import (
 
 FIRST_STEPS_KEYS = (
     'identity',
+    'wedding_details',
     'checklist',
     'guests',
     'suppliers',
@@ -30,6 +31,10 @@ def _has_completed_identity(profile: UserWeddingProfile) -> bool:
     )
 
 
+def _has_completed_wedding_details(profile: UserWeddingProfile) -> bool:
+    return bool(profile.local and profile.data_casamento)
+
+
 def build_first_steps_menu_state(user):
     profile, _ = UserWeddingProfile.objects.get_or_create(user=user)
 
@@ -38,6 +43,7 @@ def build_first_steps_menu_state(user):
             'first_steps': True,
             'items': {
                 'identity': True,
+                'wedding_details': True,
                 'checklist': True,
                 'guests': True,
                 'suppliers': True,
@@ -49,6 +55,7 @@ def build_first_steps_menu_state(user):
         }
 
     identity_done = _has_completed_identity(profile)
+    wedding_details_done = _has_completed_wedding_details(profile)
     checklist_done = ChecklistTask.objects.filter(user=user, status='done').exists()
     guests_done = Guest.objects.filter(user=user).exists()
     suppliers_done = WeddingSupplier.objects.filter(wedding=profile).exists()
@@ -56,6 +63,7 @@ def build_first_steps_menu_state(user):
 
     items = {
         'identity': identity_done,
+        'wedding_details': wedding_details_done,
         'checklist': checklist_done,
         'guests': guests_done,
         'suppliers': suppliers_done,
