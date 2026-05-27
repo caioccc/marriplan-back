@@ -12,11 +12,12 @@ from rest_framework.exceptions import AuthenticationFailed
 
 class UserSerializer(serializers.ModelSerializer):
     wedding_profile = serializers.SerializerMethodField()
+    has_usable_password = serializers.SerializerMethodField()
 
     class Meta:
         ref_name = "User"
         model = CustomUser
-        fields = ('id', 'username', 'email', 'is_email_confirmed', 'is_2fa_enabled', 'settings', 'role', 'wedding_partner_role', 'wedding_profile', 'wedding_site',)
+        fields = ('id', 'username', 'email', 'is_email_confirmed', 'is_2fa_enabled', 'login_method', 'has_usable_password', 'settings', 'role', 'wedding_partner_role', 'first_steps', 'wedding_profile', 'wedding_site',)
 
     def get_wedding_site(self, obj):
         try:
@@ -32,6 +33,9 @@ class UserSerializer(serializers.ModelSerializer):
             return None
         return UserWeddingProfileSerializer(profile).data
 
+    def get_has_usable_password(self, obj):
+        return obj.has_usable_password()
+
 
 class UserSettingsSerializer(serializers.ModelSerializer):
     enable_2fa = serializers.BooleanField(required=False, default=False)
@@ -44,12 +48,18 @@ class UserSettingsSerializer(serializers.ModelSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     name = serializers.CharField(write_only=True)
     role = serializers.ChoiceField(choices=[('noivo', 'Noivo(a)'), ('convidado', 'Convidado')], default='noivo', required=False)
+    accepted_terms = serializers.BooleanField(write_only=True)
 
     class Meta:
         ref_name = "Register User"
         model = CustomUser
-        fields = ('id', 'name', 'email', 'password', 'role')
+        fields = ('id', 'name', 'email', 'password', 'role', 'accepted_terms')
         extra_kwargs = {'password': {'write_only': True}}
+
+    def validate_accepted_terms(self, value):
+        if not value:
+            raise serializers.ValidationError('Você precisa aceitar os Termos de Uso para se cadastrar.')
+        return value
 
     def create(self, validated_data):
         name = validated_data.get('name')

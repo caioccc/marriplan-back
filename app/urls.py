@@ -12,7 +12,8 @@ from app.viewsets.gift import (
 )
 from app.viewsets.guest import GuestViewSet
 from app.viewsets.supplier import SupplierCategoryViewSet, SupplierViewSet, WeddingSupplierViewSet
-from app.viewsets.user import NotificationViewSet, UserViewSet, UserWeddingProfileViewSet, MainUser, UserSettingsAPI
+from app.viewsets.privacy import AccountPrivacyDeleteAccountAPI, AccountPrivacyExportDataAPI
+from app.viewsets.user import FirstStepsMenuAPI, NotificationViewSet, UserViewSet, UserWeddingProfileViewSet, MainUser, UserSettingsAPI
 from app.viewsets.utility import (
      delete_cloudinary_image,
      featured_marketplace_products,
@@ -75,6 +76,9 @@ urlpatterns += [
     path('user/<int:pk>/', UserViewSet.as_view({'get': 'retrieve'}), name="user"),
 
     path('settings/', UserSettingsAPI.as_view(), name='user-settings'),
+     path('first-steps/', FirstStepsMenuAPI.as_view(), name='first-steps-menu'),
+     path('account/privacy/export-data/', AccountPrivacyExportDataAPI.as_view(), name='account-privacy-export-data'),
+     path('account/privacy/delete-account/', AccountPrivacyDeleteAccountAPI.as_view(), name='account-privacy-delete-account'),
 
     path('notifications/', notification_list, name='notification-list'),
     path('notifications/<int:pk>/', notification_detail, name='notification-detail'),

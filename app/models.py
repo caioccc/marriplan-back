@@ -22,6 +22,14 @@ STYLE_CHOICES = [
     ("vintage", "Vintage"),
 ]
 
+LOGIN_METHOD_GOOGLE = "LOGIN_GOOGLE"
+LOGIN_METHOD_MARRIPLAN = "LOGIN_MARRIPLAN"
+
+LOGIN_METHOD_CHOICES = [
+    (LOGIN_METHOD_GOOGLE, "Google"),
+    (LOGIN_METHOD_MARRIPLAN, "Marriplan"),
+]
+
 
 class AbstractTimeStamped(models.Model):
     """
@@ -58,10 +66,16 @@ class CustomUser(AbstractUser):
     email_confirmation_expiry = models.DateTimeField(blank=True, null=True)
     reset_password_token = models.CharField(max_length=128, blank=True, null=True)
     reset_password_expiry = models.DateTimeField(blank=True, null=True)
+    login_method = models.CharField(
+        max_length=20,
+        choices=LOGIN_METHOD_CHOICES,
+        default=LOGIN_METHOD_MARRIPLAN,
+    )
     settings = models.OneToOneField(UserSettings, on_delete=models.CASCADE, related_name='user', null=True, blank=True)
     wedding_partner_role = models.CharField(max_length=10, choices=WEDDING_PARTNER_ROLE_CHOICES, blank=True, null=True)
     is_2fa_enabled = models.BooleanField(default=False)
     otp_secret = models.CharField(max_length=32, blank=True, null=True)
+    first_steps = models.BooleanField(default=False)
 
     def __str__(self):
         return self.username

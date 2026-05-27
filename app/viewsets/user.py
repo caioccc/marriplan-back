@@ -11,6 +11,7 @@ from app.serializers import (NotificationSerializer, UserSerializer,
                              UserSettingsSerializer,
                              UserWeddingProfileSerializer)
 from app.logging_utils import audit_log
+from app.services.first_steps import build_first_steps_menu_state
 
 
 class MainUser(generics.RetrieveAPIView):
@@ -56,6 +57,13 @@ class UserSettingsAPI(APIView):
         serializer.save()
         audit_log('user.settings.update', user=request.user, message='Configurações atualizadas')
         return Response(serializer.data)
+
+
+class FirstStepsMenuAPI(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        return Response(build_first_steps_menu_state(request.user))
 
 
 class UserViewSet(viewsets.ModelViewSet):

@@ -26,6 +26,7 @@ from app.serializers import (LoginSerializer,
                              PreLoginSerializer,
                              RegisterSerializer, UserSerializer)
 from app.logging_utils import audit_exception, audit_log
+from app.models import LOGIN_METHOD_GOOGLE, LOGIN_METHOD_MARRIPLAN
 from app.utils import (create_limited_notification, initialize_user_chat, send_mail_confirmation_email)
 
 
@@ -54,11 +55,15 @@ class GoogleLoginView(APIView):
                     'username': email.split('@')[0],
                     'first_name': name,
                     'is_email_confirmed': True,
+                    'login_method': LOGIN_METHOD_GOOGLE,
                 }
             )
             if created:
                 user.is_active = True
                 user.save()
+            elif not user.has_usable_password() and user.login_method != LOGIN_METHOD_GOOGLE:
+                user.login_method = LOGIN_METHOD_GOOGLE
+                user.save(update_fields=['login_method'])
 
             audit_log('auth.google_login', user=user, message='Login com Google concluído', created=created)
 

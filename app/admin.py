@@ -140,6 +140,12 @@ class WeddingSiteInline(admin.StackedInline):
 
 class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
+        ('Origem do Login', {
+            'fields': ('login_method',)
+        }),
+        ('Primeiros passos', {
+            'fields': ('first_steps',)
+        }),
         ('Confirmação de Email', {
             'fields': ('is_email_confirmed', 'email_confirmation_token', 'email_confirmation_expiry')
         }),
@@ -150,7 +156,7 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('settings',)
         }),
     )
-    list_display = UserAdmin.list_display + ('is_email_confirmed', 'is_2fa_enabled', 'wedding_partner_role',)
+    list_display = UserAdmin.list_display + ('login_method', 'is_email_confirmed', 'is_2fa_enabled', 'first_steps', 'wedding_partner_role',)
     inlines = [UserWeddingProfileInline, WeddingSiteInline]
 
 
