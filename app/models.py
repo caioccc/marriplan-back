@@ -71,6 +71,7 @@ class CustomUser(AbstractUser):
         choices=LOGIN_METHOD_CHOICES,
         default=LOGIN_METHOD_MARRIPLAN,
     )
+    image_url = models.URLField(blank=True, default='')
     settings = models.OneToOneField(UserSettings, on_delete=models.CASCADE, related_name='user', null=True, blank=True)
     wedding_partner_role = models.CharField(max_length=10, choices=WEDDING_PARTNER_ROLE_CHOICES, blank=True, null=True)
     is_2fa_enabled = models.BooleanField(default=False)

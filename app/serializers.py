@@ -17,7 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         ref_name = "User"
         model = CustomUser
-        fields = ('id', 'username', 'email', 'is_email_confirmed', 'is_2fa_enabled', 'login_method', 'has_usable_password', 'settings', 'role', 'wedding_partner_role', 'first_steps', 'wedding_profile', 'wedding_site',)
+        fields = ('id', 'username', 'email', 'image_url', 'is_email_confirmed', 'is_2fa_enabled', 'login_method', 'has_usable_password', 'settings', 'role', 'wedding_partner_role', 'first_steps', 'wedding_profile', 'wedding_site',)
 
     def get_wedding_site(self, obj):
         try:

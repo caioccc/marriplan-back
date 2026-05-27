@@ -44,7 +44,7 @@ class GoogleLoginView(APIView):
             idinfo = id_token.verify_oauth2_token(token, requests.Request(), clock_skew_in_seconds=30)
             email = idinfo['email']
             name = idinfo.get('name', '')
-            # picture = idinfo.get('picture', '')
+            picture = idinfo.get('picture', '')
 
             if not email:
                 return Response({'error': 'Google token inválido: sem e-mail'}, status=status.HTTP_400_BAD_REQUEST)
@@ -56,14 +56,22 @@ class GoogleLoginView(APIView):
                     'first_name': name,
                     'is_email_confirmed': True,
                     'login_method': LOGIN_METHOD_GOOGLE,
+                    'image_url': picture or '',
                 }
             )
             if created:
                 user.is_active = True
                 user.save()
-            elif not user.has_usable_password() and user.login_method != LOGIN_METHOD_GOOGLE:
-                user.login_method = LOGIN_METHOD_GOOGLE
-                user.save(update_fields=['login_method'])
+            else:
+                update_fields = []
+                if picture and not user.image_url:
+                    user.image_url = picture
+                    update_fields.append('image_url')
+                if not user.has_usable_password() and user.login_method != LOGIN_METHOD_GOOGLE:
+                    user.login_method = LOGIN_METHOD_GOOGLE
+                    update_fields.append('login_method')
+                if update_fields:
+                    user.save(update_fields=update_fields)
 
             audit_log('auth.google_login', user=user, message='Login com Google concluído', created=created)
 
